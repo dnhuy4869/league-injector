@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_impl_dx9.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Dependencies\imgui_ex\imgui_ex.cpp" />
+    <ClCompile Include="PopupWindow\PopupWindow.cpp" />
+    <ClCompile Include="Core\Core.cpp" />
+    <ClCompile Include="Utilities\Utilities.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WinMain.h" />
+    <ClInclude Include="Dependencies\HTTPRequest.hpp" />
+    <ClInclude Include="Dependencies\json.hpp" />
+    <ClInclude Include="Dependencies\ntdll.h" />
+    <ClInclude Include="Dependencies\xorstr.hpp" />
+    <ClInclude Include="Dependencies\detours\detours.h" />
+    <ClInclude Include="Dependencies\imgui\imconfig.h" />
+    <ClInclude Include="Dependencies\imgui\imgui.h" />
+    <ClInclude Include="Dependencies\imgui\imgui_impl_dx9.h" />
+    <ClInclude Include="Dependencies\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="Dependencies\imgui\imgui_internal.h" />
+    <ClInclude Include="Dependencies\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Dependencies\imgui\imstb_textedit.h" />
+    <ClInclude Include="Dependencies\imgui\imstb_truetype.h" />
+    <ClInclude Include="Dependencies\imgui_ex\imgui_ex.h" />
+    <ClInclude Include="Dependencies\imgui_notify\fa_solid_900.h" />
+    <ClInclude Include="Dependencies\imgui_notify\imgui_notify.h" />
+    <ClInclude Include="PopupWindow\PopupWindow.h" />
+    <ClInclude Include="Resources\FontAwesome.h" />
+    <ClInclude Include="Resources\IconsFontAwesome.h" />
+    <ClInclude Include="Resources\Resources.h" />
+    <ClInclude Include="Resources\Roboto.h" />
+    <ClInclude Include="Resources\Xtreme.h" />
+    <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Utilities\Utilities.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="Dependencies\detours\detours.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources\loader.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\main.ico" />
+  </ItemGroup>
+</Project>
