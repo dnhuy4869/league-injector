@@ -158,6 +158,7 @@
     <ClCompile Include="Dependencies\imgui\imgui_tables.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Dependencies\imgui_ex\imgui_ex.cpp" />
+    <ClCompile Include="Driver\Driver.cpp" />
     <ClCompile Include="Menu\Console.cpp" />
     <ClCompile Include="Menu\Login.cpp" />
     <ClCompile Include="Menu\Menu.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="Dependencies\json.hpp" />
     <ClInclude Include="Dependencies\ntdll.h" />
     <ClInclude Include="Dependencies\xorstr.hpp" />
+    <ClInclude Include="Driver\Driver.h" />
     <ClInclude Include="Menu\Menu.h" />
     <ClInclude Include="PopupWindow\PopupWindow.h" />
     <ClInclude Include="Resources\FontAwesome.h" />

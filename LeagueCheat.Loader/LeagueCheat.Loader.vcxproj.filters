@@ -18,6 +18,7 @@
     <ClCompile Include="Menu\Splash.cpp" />
     <ClCompile Include="Menu\Login.cpp" />
     <ClCompile Include="Menu\Console.cpp" />
+    <ClCompile Include="Driver\Driver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WinMain.h" />
@@ -47,6 +48,7 @@
     <ClInclude Include="Utilities\Utilities.h" />
     <ClInclude Include="D3DX9\D3DX9.h" />
     <ClInclude Include="Menu\Menu.h" />
+    <ClInclude Include="Driver\Driver.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Dependencies\detours\detours.lib" />

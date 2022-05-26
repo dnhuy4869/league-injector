@@ -7,6 +7,7 @@ class PopupWindow* PopupWindow;
 Utilities* Utils;
 class D3DX9* D3DX9;
 class Menu* Menu;
+class Driver* Driver;
 
 void OnLoad()
 {
@@ -15,10 +16,12 @@ void OnLoad()
 	Utils = new Utilities();
 	D3DX9 = new class D3DX9();
 	Menu = new class Menu();
+	Driver = new class Driver("LeagueCheat", "\\\\.\\LeagueCheat");
 }
 
 void OnUnload()
 {
+	delete Driver;
 	delete Menu;
 	delete D3DX9;
 	delete Utils;

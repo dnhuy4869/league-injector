@@ -8,6 +8,7 @@
 #include "../Resources/Roboto.h"
 #include "../Resources/FontAwesome.h"
 #include "../Menu/Menu.h"
+#include "../Driver/Driver.h"
 
 class Core
 {
@@ -27,4 +28,13 @@ public:
 	bool IsImGuiCreated = false;
 
 	bool IsLoginSuccess = false;
+
+	DWORD ProcessId = 0x0;
+	HANDLE hProcess = 0x0;
+
+	bool IsSectionProtected();
+
+	void WriteProtected(DWORD addr, void* value, size_t size);
+	bool ScanHook(HANDLE hProcess, LPCSTR ModuleName, LPCSTR FuncName);
+	bool RestoreNtdll();
 };
