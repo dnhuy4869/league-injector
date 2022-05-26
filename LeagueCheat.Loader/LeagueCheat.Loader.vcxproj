@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\Core.cpp" />
+    <ClCompile Include="D3DX9\D3DX9.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui_demo.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui_draw.cpp" />
@@ -157,12 +158,17 @@
     <ClCompile Include="Dependencies\imgui\imgui_tables.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Dependencies\imgui_ex\imgui_ex.cpp" />
+    <ClCompile Include="Menu\Console.cpp" />
+    <ClCompile Include="Menu\Login.cpp" />
+    <ClCompile Include="Menu\Menu.cpp" />
+    <ClCompile Include="Menu\Splash.cpp" />
     <ClCompile Include="PopupWindow\PopupWindow.cpp" />
     <ClCompile Include="Utilities\Utilities.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="D3DX9\D3DX9.h" />
     <ClInclude Include="Dependencies\detours\detours.h" />
     <ClInclude Include="Dependencies\HTTPRequest.hpp" />
     <ClInclude Include="Dependencies\imgui\imconfig.h" />
@@ -179,6 +185,7 @@
     <ClInclude Include="Dependencies\json.hpp" />
     <ClInclude Include="Dependencies\ntdll.h" />
     <ClInclude Include="Dependencies\xorstr.hpp" />
+    <ClInclude Include="Menu\Menu.h" />
     <ClInclude Include="PopupWindow\PopupWindow.h" />
     <ClInclude Include="Resources\FontAwesome.h" />
     <ClInclude Include="Resources\IconsFontAwesome.h" />

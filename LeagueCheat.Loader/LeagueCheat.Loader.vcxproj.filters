@@ -13,6 +13,11 @@
     <ClCompile Include="PopupWindow\PopupWindow.cpp" />
     <ClCompile Include="Core\Core.cpp" />
     <ClCompile Include="Utilities\Utilities.cpp" />
+    <ClCompile Include="D3DX9\D3DX9.cpp" />
+    <ClCompile Include="Menu\Menu.cpp" />
+    <ClCompile Include="Menu\Splash.cpp" />
+    <ClCompile Include="Menu\Login.cpp" />
+    <ClCompile Include="Menu\Console.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WinMain.h" />
@@ -40,6 +45,8 @@
     <ClInclude Include="Resources\Xtreme.h" />
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Utilities\Utilities.h" />
+    <ClInclude Include="D3DX9\D3DX9.h" />
+    <ClInclude Include="Menu\Menu.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Dependencies\detours\detours.lib" />

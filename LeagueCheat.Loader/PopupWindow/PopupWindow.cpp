@@ -17,6 +17,7 @@ bool PopupWindow::Create(HINSTANCE hInstance, WNDPROC pWndProc, float width, flo
 	GetWindowRect(hDesktop, &rect);
 
 	WNDCLASSEXW wc;
+	ZeroMemory(&wc, sizeof(wc));
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = pWndProc;
