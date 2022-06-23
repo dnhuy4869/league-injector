@@ -29,7 +29,7 @@ void Core::GetGameProcess()
 		Sleep(1000);
 
 		//Core::ProcessId = Utilities::GetTargetProcessId(VMPSTRW(L"hackme-x86.exe"));
-		Core::ProcessId = Utilities::GetTargetProcessId(VMPSTRW(L"League of Legends.exe"));
+		Core::ProcessId = Utilities::GetTargetProcessId(TargetName);
 
 		if (Core::ProcessId > 0)
 		{
@@ -86,25 +86,32 @@ void Core::AwaitGameLoad()
 {
 	Console::Log(VMPSTRA("Waiting for game completely loaded..."), ConsoleColor::Yellow);
 
+	if (ScanHook(Core::ProcessHandle, VMPSTRA("ntdll.dll"), VMPSTRA("NtCreateSection")))
+	{
+		Sleep(3000);
+		return;
+	}
+	else
+	{
+		Sleep(8000);
+	}
+
 	while (true)
 	{
-		Sleep(1000);
-
 		if (ScanHook(Core::ProcessHandle, VMPSTRA("ntdll.dll"), VMPSTRA("NtCreateSection")))
 		{
 			break;
 		}
+
+		Sleep(1000);
 	}
 }
 
 typedef HMODULE(__stdcall* f_LoadLibraryA)(LPCSTR);
 
-typedef DWORD(__stdcall* f_GetLastError)();
-
 struct LOADLIBRARYA_DATA
 {
 	f_LoadLibraryA pLoadLibraryA;
-	f_GetLastError pGetLastError;
 	CHAR szDllPath[MAX_PATH];
 };
 
@@ -127,10 +134,20 @@ DWORD __stdcall LoadLibrary_ShellCodeEnd()
 	return 0;
 }
 
+bool Core::IsDllInjected()
+{
+	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, ModuleName);
+	if (moduleBase > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 void Core::InjectDll()
 {
 	Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
-	Sleep(3000);
 
 	void* pDllPath = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	if ((DWORD)pDllPath <= 0)
@@ -148,30 +165,6 @@ void Core::InjectDll()
 		Console::Pause();
 		ExitProcess(0);
 	}
-
-	/*void* pShellCode = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-	if ((DWORD)pShellCode <= 0)
-	{
-		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
-
-		Console::Log(VMPSTRA("VirtualAllocEx failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
-		Console::Pause();
-		ExitProcess(0);
-	}
-
-	if (!WriteProcessMemory(ProcessHandle,
-		pShellCode, 
-		LoadLibrary_ShellCode,
-		(DWORD)LoadLibrary_ShellCodeEnd - (DWORD)LoadLibrary_ShellCode,
-		0))
-	{
-		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
-		VirtualFreeEx(ProcessHandle, pShellCode, 0, MEM_RELEASE);
-
-		Console::Log(VMPSTRA("WriteProcessMemory failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
-		Console::Pause();
-		ExitProcess(0);
-	}*/
 
 	Win32Hook::RestoreHook(VMPSTRA("NtCreateSection"));
 	//Win32Hook::RestoreHook(VMPSTRA("NtCreateThread"));
@@ -197,7 +190,6 @@ void Core::InjectDll()
 		ExitProcess(0);
 	}
 
-
 	DWORD retCode;
 	GetExitCodeThread(hThread, &retCode);
 
@@ -212,7 +204,7 @@ void Core::InjectDll()
 	{
 		VirtualFreeEx(ProcessHandle, pDllPath, 0, MEM_RELEASE);
 
-		Console::Log(VMPSTRA("LoadLibraryA failed with code ") + Utilities::IntToHex(retCode), ConsoleColor::Red);
+		Console::Log(VMPSTRA("LoadLibraryA return ") + Utilities::IntToHex(retCode), ConsoleColor::Red);
 		Console::Pause();
 		ExitProcess(0);
 	}
@@ -260,7 +252,11 @@ void Core::InjectThread()
 		Win32Hook::Initialize(Core::ProcessHandle);
 
 		Core::DllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Release\\LeagueCheat.Core.dll";
-		Core::InjectDll();
+
+		if (!IsDllInjected())
+		{
+			Core::InjectDll();
+		}
 
 		CloseHandle(ProcessHandle);
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN
+
 #include <Windows.h>
 #include <string>
 #include <vector>
@@ -16,6 +18,7 @@
 #include "./Console.h"
 #include "./Utilities.h"
 #include "./Win32Hook.h"
+#include "./TCPSocket.h"
 
 class Core abstract final
 {
@@ -23,11 +26,17 @@ class Core abstract final
 
 	public:
 
+	inline static const wchar_t* TargetName = VMPSTRW(L"League of Legends.exe");
+
+	inline static const wchar_t* ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
+
 	inline static std::string DllPath;
 
 	inline static DWORD ProcessId = 0;
 
 	inline static HANDLE ProcessHandle = 0;
+
+	inline static TCPSocket* IOClient;
 
 	static bool Initialize();
 
@@ -38,6 +47,8 @@ class Core abstract final
 	static bool ScanHook(HANDLE hProcess, std::string moduleName, std::string funcName);
 
 	static void AwaitGameLoad();
+
+	static bool IsDllInjected();
 
 	static void InjectDll();
 

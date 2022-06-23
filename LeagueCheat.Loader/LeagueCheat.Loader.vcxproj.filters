@@ -6,6 +6,7 @@
     <ClCompile Include="Win32Hook.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="Console.cpp" />
+    <ClCompile Include="TCPSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
@@ -18,6 +19,7 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="Definitions.h" />
+    <ClInclude Include="TCPSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\VMProtectSDK\VMProtectSDK32.lib" />

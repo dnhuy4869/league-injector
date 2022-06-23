@@ -22,6 +22,7 @@
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Console.cpp" />
+    <ClCompile Include="TCPSocket.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="Win32Hook.cpp" />
   </ItemGroup>
@@ -30,6 +31,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="Definitions.h" />
+    <ClInclude Include="TCPSocket.h" />
     <ClInclude Include="ThirdParty\io_color.h" />
     <ClInclude Include="ThirdParty\json.hpp" />
     <ClInclude Include="Utilities.h" />
