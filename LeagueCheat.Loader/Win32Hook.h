@@ -36,7 +36,7 @@ class Win32Hook abstract final
 			VMPSTRA("ntdll.dll"),
 			VMPSTRA("NtCreateSection")
 		},
-		{
+		/*{
 			VMPSTRA("ntdll.dll"),
 			VMPSTRA("NtCreateThread")
 		},
@@ -47,7 +47,7 @@ class Win32Hook abstract final
 		{
 			VMPSTRA("ntdll.dll"),
 			VMPSTRA("LdrInitializeThunk")
-		},
+		},*/
 	};
 
 	inline static std::unordered_map<std::string, WIN32_HOOK_DATA*> m_AllHooks;
