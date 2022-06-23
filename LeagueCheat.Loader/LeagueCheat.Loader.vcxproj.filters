@@ -1,62 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="WinMain.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_demo.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_draw.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_impl_dx9.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_tables.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="Dependencies\imgui_ex\imgui_ex.cpp" />
-    <ClCompile Include="PopupWindow\PopupWindow.cpp" />
-    <ClCompile Include="Core\Core.cpp" />
-    <ClCompile Include="Utilities\Utilities.cpp" />
-    <ClCompile Include="D3DX9\D3DX9.cpp" />
-    <ClCompile Include="Menu\Menu.cpp" />
-    <ClCompile Include="Menu\Splash.cpp" />
-    <ClCompile Include="Menu\Login.cpp" />
-    <ClCompile Include="Menu\Console.cpp" />
-    <ClCompile Include="Driver\Driver.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Win32Hook.cpp" />
+    <ClCompile Include="Utilities.cpp" />
+    <ClCompile Include="Console.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WinMain.h" />
-    <ClInclude Include="Dependencies\HTTPRequest.hpp" />
-    <ClInclude Include="Dependencies\json.hpp" />
-    <ClInclude Include="Dependencies\ntdll.h" />
-    <ClInclude Include="Dependencies\xorstr.hpp" />
-    <ClInclude Include="Dependencies\detours\detours.h" />
-    <ClInclude Include="Dependencies\imgui\imconfig.h" />
-    <ClInclude Include="Dependencies\imgui\imgui.h" />
-    <ClInclude Include="Dependencies\imgui\imgui_impl_dx9.h" />
-    <ClInclude Include="Dependencies\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="Dependencies\imgui\imgui_internal.h" />
-    <ClInclude Include="Dependencies\imgui\imstb_rectpack.h" />
-    <ClInclude Include="Dependencies\imgui\imstb_textedit.h" />
-    <ClInclude Include="Dependencies\imgui\imstb_truetype.h" />
-    <ClInclude Include="Dependencies\imgui_ex\imgui_ex.h" />
-    <ClInclude Include="Dependencies\imgui_notify\fa_solid_900.h" />
-    <ClInclude Include="Dependencies\imgui_notify\imgui_notify.h" />
-    <ClInclude Include="PopupWindow\PopupWindow.h" />
-    <ClInclude Include="Resources\FontAwesome.h" />
-    <ClInclude Include="Resources\IconsFontAwesome.h" />
-    <ClInclude Include="Resources\Resources.h" />
-    <ClInclude Include="Resources\Roboto.h" />
-    <ClInclude Include="Resources\Xtreme.h" />
-    <ClInclude Include="Core\Core.h" />
-    <ClInclude Include="Utilities\Utilities.h" />
-    <ClInclude Include="D3DX9\D3DX9.h" />
-    <ClInclude Include="Menu\Menu.h" />
-    <ClInclude Include="Driver\Driver.h" />
+    <ClInclude Include="Core.h" />
+    <ClInclude Include="ThirdParty\io_color.h" />
+    <ClInclude Include="ThirdParty\json.hpp" />
+    <ClInclude Include="ThirdParty\VMProtectSDK\VMProtectSDK.h" />
+    <ClInclude Include="VMProtect.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Win32Hook.h" />
+    <ClInclude Include="Utilities.h" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="Definitions.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="Dependencies\detours\detours.lib" />
+    <Library Include="ThirdParty\VMProtectSDK\VMProtectSDK32.lib" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resources\loader.rc" />
+    <ResourceCompile Include="loader.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Resources\main.ico" />
+    <Image Include="icon1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="loader.aps" />
   </ItemGroup>
 </Project>

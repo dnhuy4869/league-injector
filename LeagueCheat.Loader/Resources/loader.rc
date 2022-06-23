@@ -1,5 +1,0 @@
-#include "Resources.h"
-
-MAINICON ICON "main.ico"
-IDI_1      ICON         "main.ico"
-IDI_2      ICON         "main.ico"

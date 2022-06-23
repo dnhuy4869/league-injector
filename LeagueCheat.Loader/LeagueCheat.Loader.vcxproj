@@ -18,6 +18,37 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="Utilities.cpp" />
+    <ClCompile Include="Win32Hook.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="Definitions.h" />
+    <ClInclude Include="ThirdParty\io_color.h" />
+    <ClInclude Include="ThirdParty\json.hpp" />
+    <ClInclude Include="Utilities.h" />
+    <ClInclude Include="VMProtect.h" />
+    <ClInclude Include="ThirdParty\VMProtectSDK\VMProtectSDK.h" />
+    <ClInclude Include="Win32Hook.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="ThirdParty\VMProtectSDK\VMProtectSDK32.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="loader.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="loader.aps" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -30,13 +61,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
@@ -44,13 +75,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -77,8 +108,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(DXSDK_DIR)Lib\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -106,11 +137,11 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -147,65 +178,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\Core.cpp" />
-    <ClCompile Include="D3DX9\D3DX9.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_demo.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_draw.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_impl_dx9.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_tables.cpp" />
-    <ClCompile Include="Dependencies\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="Dependencies\imgui_ex\imgui_ex.cpp" />
-    <ClCompile Include="Driver\Driver.cpp" />
-    <ClCompile Include="Menu\Console.cpp" />
-    <ClCompile Include="Menu\Login.cpp" />
-    <ClCompile Include="Menu\Menu.cpp" />
-    <ClCompile Include="Menu\Splash.cpp" />
-    <ClCompile Include="PopupWindow\PopupWindow.cpp" />
-    <ClCompile Include="Utilities\Utilities.cpp" />
-    <ClCompile Include="WinMain.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Core\Core.h" />
-    <ClInclude Include="D3DX9\D3DX9.h" />
-    <ClInclude Include="Dependencies\detours\detours.h" />
-    <ClInclude Include="Dependencies\HTTPRequest.hpp" />
-    <ClInclude Include="Dependencies\imgui\imconfig.h" />
-    <ClInclude Include="Dependencies\imgui\imgui.h" />
-    <ClInclude Include="Dependencies\imgui\imgui_impl_dx9.h" />
-    <ClInclude Include="Dependencies\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="Dependencies\imgui\imgui_internal.h" />
-    <ClInclude Include="Dependencies\imgui\imstb_rectpack.h" />
-    <ClInclude Include="Dependencies\imgui\imstb_textedit.h" />
-    <ClInclude Include="Dependencies\imgui\imstb_truetype.h" />
-    <ClInclude Include="Dependencies\imgui_ex\imgui_ex.h" />
-    <ClInclude Include="Dependencies\imgui_notify\fa_solid_900.h" />
-    <ClInclude Include="Dependencies\imgui_notify\imgui_notify.h" />
-    <ClInclude Include="Dependencies\json.hpp" />
-    <ClInclude Include="Dependencies\ntdll.h" />
-    <ClInclude Include="Dependencies\xorstr.hpp" />
-    <ClInclude Include="Driver\Driver.h" />
-    <ClInclude Include="Menu\Menu.h" />
-    <ClInclude Include="PopupWindow\PopupWindow.h" />
-    <ClInclude Include="Resources\FontAwesome.h" />
-    <ClInclude Include="Resources\IconsFontAwesome.h" />
-    <ClInclude Include="Resources\Resources.h" />
-    <ClInclude Include="Resources\Roboto.h" />
-    <ClInclude Include="Resources\Xtreme.h" />
-    <ClInclude Include="Utilities\Utilities.h" />
-    <ClInclude Include="WinMain.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="Dependencies\detours\detours.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Resources\loader.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Resources\main.ico" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
