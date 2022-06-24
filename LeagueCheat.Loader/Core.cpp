@@ -247,6 +247,8 @@ void Core::PrintMessage()
 		if (IOClient->Recv(buffer, sizeof(buffer)))
 		{
 			std::string message = buffer;
+			IOClient->Send(message.c_str(), message.size());
+
 			if (message != "")
 			{
 				Console::Log(buffer, ConsoleColor::Yellow);
