@@ -23,6 +23,7 @@ int main()
 		Sleep(10000);
 	}
 
+	WSACleanup();
 	Console::Pause();
 
 	VMProtectEnd();

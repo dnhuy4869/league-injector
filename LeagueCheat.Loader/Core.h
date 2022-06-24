@@ -26,6 +26,7 @@ class Core abstract final
 
 	public:
 
+	//inline static const wchar_t* TargetName = VMPSTRW(L"hackme-x86.exe");
 	inline static const wchar_t* TargetName = VMPSTRW(L"League of Legends.exe");
 
 	inline static const wchar_t* ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
@@ -37,6 +38,8 @@ class Core abstract final
 	inline static HANDLE ProcessHandle = 0;
 
 	inline static TCPSocket* IOClient;
+
+	inline static HANDLE hMessageThread;
 
 	static bool Initialize();
 
@@ -51,6 +54,8 @@ class Core abstract final
 	static bool IsDllInjected();
 
 	static void InjectDll();
+
+	static void PrintMessage();
 
 	static void AwaitGameClose();
 

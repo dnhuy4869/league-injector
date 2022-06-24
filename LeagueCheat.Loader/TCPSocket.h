@@ -4,6 +4,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 
+#include <iostream>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <iphlpapi.h>
@@ -18,7 +19,7 @@ class TCPSocket final
 {
 	private:
 
-	PCSTR m_IpAddress;
+	std::string m_IpAddress;
 	DWORD m_Port;
 
 	SOCKET m_Socket;
@@ -26,7 +27,7 @@ class TCPSocket final
 
 	public:
 
-	TCPSocket(PCSTR ipAdrr, DWORD port);
+	TCPSocket(std::string ipAdrr, DWORD port);
 	~TCPSocket();
 
 	bool Connect();

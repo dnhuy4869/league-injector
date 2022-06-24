@@ -6,6 +6,15 @@ bool Core::Initialize()
 
 	GetDllPath();
 
+	WSADATA WSAData;
+	int error = WSAStartup(MAKEWORD(2, 2), &WSAData);
+	if (error != 0)
+	{
+		Console::Log(VMPSTRA("WSAStartup failed with code ") + Utilities::IntToHex(WSAGetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
 	return true;
 }
 
@@ -136,7 +145,7 @@ DWORD __stdcall LoadLibrary_ShellCodeEnd()
 
 bool Core::IsDllInjected()
 {
-	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, ModuleName);
+	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, L"");
 	if (moduleBase > 0)
 	{
 		return true;
@@ -214,24 +223,55 @@ void Core::InjectDll()
 	Console::Log(VMPSTRA("Injected successfully."), ConsoleColor::Green);
 }
 
+void Core::PrintMessage()
+{
+	Console::Log(VMPSTRA("Connecting to io server..."), ConsoleColor::Yellow);
+
+	IOClient = new TCPSocket(VMPSTRA("127.0.0.1"), 27015);
+
+	while (!IOClient->Connect())
+	{
+		Sleep(1000);
+	}
+
+	Console::Log(VMPSTRA("Connected successfully."), ConsoleColor::Green);
+
+	char buffer[4096];
+
+	while (true)
+	{
+		Sleep(10);
+
+		ZeroMemory(buffer, sizeof(buffer));
+
+		if (IOClient->Recv(buffer, sizeof(buffer)))
+		{
+			std::string message = buffer;
+			if (message != "")
+			{
+				Console::Log(buffer, ConsoleColor::Yellow);
+			}
+		}
+	}
+}
+
 void Core::AwaitGameClose()
 {
-	system(VMPSTRA("cls"));
-
-	Console::Log(VMPSTRA("Game process is running..."), ConsoleColor::Yellow);
-
 	while (true)
 	{
 		Sleep(1000);
 
-		Core::ProcessId = Utilities::GetTargetProcessId(VMPSTRW(L"League of Legends.exe"));
+		Core::ProcessId = Utilities::GetTargetProcessId(TargetName);
 
 		if (Core::ProcessId <= 0)
 		{
-			Console::Log(VMPSTRA("Game process is closed."), ConsoleColor::Yellow);
+			//Console::Log(VMPSTRA("Game process is closed."), ConsoleColor::Yellow);
 			break;
 		}
 	}
+
+	TerminateThread(hMessageThread, 0);
+	SAFE_DELETE_PTR(IOClient);
 
 	system(VMPSTRA("cls"));
 }
@@ -247,7 +287,7 @@ void Core::InjectThread()
 			Core::GetGameProcess();
 		}
 
-		Core::AwaitGameLoad();
+		//Core::AwaitGameLoad();
 
 		Win32Hook::Initialize(Core::ProcessHandle);
 
@@ -265,7 +305,9 @@ void Core::InjectThread()
 
 		Win32Hook::Dispose();
 
+		Console::Log(VMPSTRA("Game process is running..."), ConsoleColor::Yellow);
 
+		hMessageThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)PrintMessage, 0, 0, 0);
 
 		Core::AwaitGameClose();
 	}

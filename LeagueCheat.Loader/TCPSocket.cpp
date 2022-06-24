@@ -1,6 +1,6 @@
 #include "./TCPSocket.h"
 
-TCPSocket::TCPSocket(PCSTR ipAdrr, DWORD port)
+TCPSocket::TCPSocket(std::string ipAdrr, DWORD port)
 {
 	this->m_IpAddress = ipAdrr;
 	this->m_Port = port;
@@ -27,7 +27,7 @@ bool TCPSocket::Connect()
 	SOCKADDR_IN hints;
 	hints.sin_family = AF_INET;
 	hints.sin_port = htons(this->m_Port);
-	inet_pton(AF_INET, this->m_IpAddress, &hints.sin_addr.s_addr);
+	inet_pton(AF_INET, this->m_IpAddress.c_str(), &hints.sin_addr.s_addr);
 
 	if (connect(this->m_Socket, (SOCKADDR*)&hints, sizeof(hints)) == SOCKET_ERROR)
 	{
