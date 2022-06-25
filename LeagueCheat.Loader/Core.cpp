@@ -145,7 +145,7 @@ DWORD __stdcall LoadLibrary_ShellCodeEnd()
 
 bool Core::IsDllInjected()
 {
-	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, L"");
+	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, ModuleName);
 	if (moduleBase > 0)
 	{
 		return true;
