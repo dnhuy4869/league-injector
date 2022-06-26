@@ -53,7 +53,9 @@ class Core abstract final
 
 	static bool IsDllInjected();
 
-	static void InjectDll();
+	static void NormalLoadLibrary();
+
+	static void ShellcodeLoadLibrary();
 
 	static void PrintMessage();
 

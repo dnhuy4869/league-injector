@@ -124,7 +124,7 @@ struct LOADLIBRARYA_DATA
 	CHAR szDllPath[MAX_PATH];
 };
 
-DWORD __stdcall LoadLibrary_ShellCode(void* data)
+DWORD __stdcall LoadLibrary_Shellcode(void* data)
 {
 	if (!data)
 	{
@@ -138,14 +138,14 @@ DWORD __stdcall LoadLibrary_ShellCode(void* data)
 	return ret;
 }
 
-DWORD __stdcall LoadLibrary_ShellCodeEnd()
+DWORD __stdcall LoadLibrary_ShellcodeEnd()
 {
 	return 0;
 }
 
 bool Core::IsDllInjected()
 {
-	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, ModuleName);
+	DWORD moduleBase = Utilities::GetModuleBase(Core::ProcessId, L"");
 	if (moduleBase > 0)
 	{
 		return true;
@@ -154,7 +154,7 @@ bool Core::IsDllInjected()
 	return false;
 }
 
-void Core::InjectDll()
+void Core::NormalLoadLibrary()
 {
 	Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
 
@@ -219,6 +219,132 @@ void Core::InjectDll()
 	}
 
 	VirtualFreeEx(ProcessHandle, pDllPath, 0, MEM_RELEASE);
+
+	Console::Log(VMPSTRA("Injected successfully."), ConsoleColor::Green);
+}
+
+void Core::ShellcodeLoadLibrary()
+{
+	Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
+
+	LOADLIBRARYA_DATA data;
+	data.pLoadLibraryA = LoadLibraryA;
+	memcpy(data.szDllPath, DllPath.c_str(), strlen(DllPath.c_str()) + 1);
+
+	void* pData = VirtualAllocEx(ProcessHandle, 0, sizeof(LOADLIBRARYA_DATA), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if ((DWORD)pData <= 0)
+	{
+		Console::Log(VMPSTRA("VirtualAllocEx failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	if (!WriteProcessMemory(ProcessHandle, pData, &data, sizeof(data), 0))
+	{
+		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+
+		Console::Log(VMPSTRA("WriteProcessMemory failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	void* pShellcode = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if ((DWORD)pShellcode <= 0)
+	{
+		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+
+		Console::Log(VMPSTRA("VirtualAllocEx failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	if (!WriteProcessMemory(ProcessHandle,
+		pShellcode,
+		LoadLibrary_Shellcode,
+		(DWORD)LoadLibrary_ShellcodeEnd - (DWORD)LoadLibrary_Shellcode,
+		0))
+	{
+		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+		VirtualFreeEx(ProcessHandle, pShellcode, 0, MEM_RELEASE);
+
+		Console::Log(VMPSTRA("WriteProcessMemory failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	Win32Hook::RestoreHook(VMPSTRA("NtCreateSection"));
+	//Win32Hook::RestoreHook(VMPSTRA("NtCreateThread"));
+	//Win32Hook::RestoreHook(VMPSTRA("NtCreateThreadEx"));
+	//Win32Hook::RestoreHook(VMPSTRA("LdrInitializeThunk"));
+
+	DWORD oldDataProtect;
+	VirtualProtectEx(ProcessHandle, pData, sizeof(LOADLIBRARYA_DATA), PAGE_READWRITE, &oldDataProtect);
+	DWORD oldShellcodeProtect;
+	VirtualProtectEx(ProcessHandle, pShellcode, 500, PAGE_EXECUTE_READ, &oldShellcodeProtect);
+
+	HANDLE hThread = CreateRemoteThread(ProcessHandle, 0, 0, (LPTHREAD_START_ROUTINE)pShellcode, pData, 0, 0);
+	if ((DWORD)hThread <= 0)
+	{
+		DWORD tmp1;
+		VirtualProtectEx(ProcessHandle, pData, sizeof(LOADLIBRARYA_DATA), oldDataProtect, &tmp1);
+		DWORD tmp2;
+		VirtualProtectEx(ProcessHandle, pShellcode, 500, oldShellcodeProtect, &tmp2);
+
+		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+		VirtualFreeEx(ProcessHandle, pShellcode, 0, MEM_RELEASE);
+
+		Console::Log(VMPSTRA("CreateRemoteThread failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED)
+	{
+		DWORD tmp1;
+		VirtualProtectEx(ProcessHandle, pData, sizeof(LOADLIBRARYA_DATA), oldDataProtect, &tmp1);
+		DWORD tmp2;
+		VirtualProtectEx(ProcessHandle, pShellcode, 500, oldShellcodeProtect, &tmp2);
+
+		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+		VirtualFreeEx(ProcessHandle, pShellcode, 0, MEM_RELEASE);
+
+		Console::Log(VMPSTRA("WaitForSingleObject failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	DWORD retCode;
+	GetExitCodeThread(hThread, &retCode);
+
+	CloseHandle(hThread);
+
+	Win32Hook::PlaceHook(VMPSTRA("NtCreateSection"));
+	//Win32Hook::PlaceHook(VMPSTRA("NtCreateThread"));
+	//Win32Hook::PlaceHook(VMPSTRA("NtCreateThreadEx"));
+	//Win32Hook::PlaceHook(VMPSTRA("LdrInitializeThunk"));
+
+	if (retCode <= 0)
+	{
+		DWORD tmp1;
+		VirtualProtectEx(ProcessHandle, pData, sizeof(LOADLIBRARYA_DATA), oldDataProtect, &tmp1);
+		DWORD tmp2;
+		VirtualProtectEx(ProcessHandle, pShellcode, 500, oldShellcodeProtect, &tmp2);
+
+		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+		VirtualFreeEx(ProcessHandle, pShellcode, 0, MEM_RELEASE);
+
+		Console::Log(VMPSTRA("LoadLibraryA return ") + Utilities::IntToHex(retCode), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	DWORD tmp1;
+	VirtualProtectEx(ProcessHandle, pData, sizeof(LOADLIBRARYA_DATA), oldDataProtect, &tmp1);
+	DWORD tmp2;
+	VirtualProtectEx(ProcessHandle, pShellcode, 500, oldShellcodeProtect, &tmp2);
+
+	VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
+	VirtualFreeEx(ProcessHandle, pShellcode, 0, MEM_RELEASE);
 
 	Console::Log(VMPSTRA("Injected successfully."), ConsoleColor::Green);
 }
@@ -297,7 +423,7 @@ void Core::InjectThread()
 
 		if (!IsDllInjected())
 		{
-			Core::InjectDll();
+			Core::NormalLoadLibrary();
 		}
 
 		CloseHandle(ProcessHandle);
