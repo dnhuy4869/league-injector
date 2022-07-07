@@ -349,7 +349,7 @@ void Core::ShellcodeLoadLibrary()
 	Console::Log(VMPSTRA("Injected successfully."), ConsoleColor::Green);
 }
 
-void Core::PrintMessage()
+void Core::IOConnect()
 {
 	Console::Log(VMPSTRA("Connecting to io server..."), ConsoleColor::Yellow);
 
@@ -362,6 +362,20 @@ void Core::PrintMessage()
 
 	Console::Log(VMPSTRA("Connected successfully."), ConsoleColor::Green);
 
+	if (m_bSendCommand)
+	{
+		nlohmann::json command = {
+			//{ VMPSTRA("command"), VMPSTRA("dumpOffsets") }
+			{ VMPSTRA("command"), VMPSTRA("checkKey") }
+		};
+
+		const std::string obj_string = command.dump();
+		IOClient->Send(obj_string.c_str(), obj_string.size());
+	}
+}
+
+void Core::PrintMessage()
+{
 	char buffer[4096];
 
 	while (true)
@@ -424,6 +438,7 @@ void Core::InjectThread()
 		if (!IsDllInjected())
 		{
 			Core::NormalLoadLibrary();
+			m_bSendCommand = true;
 		}
 
 		CloseHandle(ProcessHandle);
@@ -435,8 +450,14 @@ void Core::InjectThread()
 
 		Console::Log(VMPSTRA("Game process is running..."), ConsoleColor::Yellow);
 
+		IOConnect();
 		hMessageThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)PrintMessage, 0, 0, 0);
 
-		Core::AwaitGameClose();
+		while (true)
+		{
+			Sleep(1000);
+		}
+
+		//Core::AwaitGameClose();
 	}
 }

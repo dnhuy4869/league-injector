@@ -27,9 +27,12 @@ class Core abstract final
 	public:
 
 	//inline static const wchar_t* TargetName = VMPSTRW(L"hackme-x86.exe");
-	inline static const wchar_t* TargetName = VMPSTRW(L"League of Legends.exe");
+	inline static const wchar_t* TargetName = VMPSTRW(L"example_win32_directx9.exe");
+	//inline static const wchar_t* TargetName = VMPSTRW(L"League of Legends.exe");
 
 	inline static const wchar_t* ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
+
+	inline static bool m_bSendCommand = false;
 
 	inline static std::string DllPath;
 
@@ -56,6 +59,8 @@ class Core abstract final
 	static void NormalLoadLibrary();
 
 	static void ShellcodeLoadLibrary();
+
+	static void IOConnect();
 
 	static void PrintMessage();
 
