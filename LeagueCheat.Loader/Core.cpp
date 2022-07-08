@@ -4,13 +4,22 @@ bool Core::Initialize()
 {
 	Console::Setup(VMPSTRA("Loader"));
 
-	GetDllPath();
-
 	WSADATA WSAData;
 	int error = WSAStartup(MAKEWORD(2, 2), &WSAData);
 	if (error != 0)
 	{
 		Console::Log(VMPSTRA("WSAStartup failed with code ") + Utilities::IntToHex(WSAGetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	GetDllPath();
+
+	Core::DllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Release\\LeagueCheat.Core.dll";
+
+	if (!GetGameTimeOffset())
+	{
+		Console::Log(VMPSTRA("GetGameTimeOffset failed with code ") + Utilities::IntToHex(WSAGetLastError()), ConsoleColor::Red);
 		Console::Pause();
 		ExitProcess(0);
 	}
@@ -29,6 +38,40 @@ void Core::GetDllPath()
 	DllPath = rootPath + VMPSTRA("\\LeagueCheat.Core.dll");
 }
 
+DWORD WINAPI UnloadCore(HMODULE hModule)
+{
+	FreeLibraryAndExitThread(hModule, 0);
+	return 0;
+}
+
+bool Core::GetGameTimeOffset()
+{
+	HMODULE hModule = LoadLibraryA(Core::DllPath.c_str());
+
+	if ((DWORD)hModule <= 0)
+	{
+		return false;
+	}
+
+	typedef DWORD(__stdcall* f_GetGameTimeOffset)();
+
+	f_GetGameTimeOffset f_Function = (f_GetGameTimeOffset)GetProcAddress(hModule, VMPSTRA("GetGameTimeOffset"));
+	if ((DWORD)f_Function <= 0)
+	{
+		return false;
+	}
+	
+	Core::GameTimeOffset = f_Function();
+
+	HANDLE hUnload = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)UnloadCore, hModule, 0, 0);
+	if (WaitForSingleObject(hUnload, INFINITE) == WAIT_FAILED)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void Core::GetGameProcess()
 {
 	Console::Log(VMPSTRA("Waiting for game process..."), ConsoleColor::Yellow);
@@ -37,7 +80,6 @@ void Core::GetGameProcess()
 	{
 		Sleep(1000);
 
-		//Core::ProcessId = Utilities::GetTargetProcessId(VMPSTRW(L"hackme-x86.exe"));
 		Core::ProcessId = Utilities::GetTargetProcessId(TargetName);
 
 		if (Core::ProcessId > 0)
@@ -55,64 +97,27 @@ void Core::GetGameProcess()
 	}
 }
 
-bool Core::ScanHook(HANDLE hProcess, std::string moduleName, std::string funcName)
-{
-	DWORD moduleAddr = (DWORD)GetModuleHandleA(moduleName.c_str());
-	if (moduleAddr <= 0)
-	{
-		return false;
-	}
-
-	DWORD funcAddr = (DWORD)GetProcAddress((HMODULE)moduleAddr, funcName.c_str());
-	if (funcAddr <= 0)
-	{
-		return false;
-	}
-
-	const int HOOK_BYTES = 16;
-	BYTE OriginalBytes[HOOK_BYTES] = {};
-	BYTE ScanBytes[HOOK_BYTES] = {};
-
-	ZeroMemory(OriginalBytes, HOOK_BYTES);
-	ZeroMemory(ScanBytes, HOOK_BYTES);
-
-	memcpy(OriginalBytes, (void*)funcAddr, HOOK_BYTES);
-	ReadProcessMemory(hProcess, (void*)funcAddr, ScanBytes, sizeof(ScanBytes), nullptr);
-
-	bool bIsHooked = false;
-	for (int i = 0; i != HOOK_BYTES; ++i)
-	{
-		if (OriginalBytes[i] != ScanBytes[i])
-		{
-			bIsHooked = true;
-		}
-	}
-
-	return bIsHooked;
-}
-
 void Core::AwaitGameLoad()
 {
 	Console::Log(VMPSTRA("Waiting for game completely loaded..."), ConsoleColor::Yellow);
 
-	if (ScanHook(Core::ProcessHandle, VMPSTRA("ntdll.dll"), VMPSTRA("NtCreateSection")))
+	Core::LeagueBase = Utilities::GetModuleBase(Core::ProcessId, TargetName);
+	if (Core::LeagueBase <= 0)
 	{
-		Sleep(3000);
-		return;
-	}
-	else
-	{
-		Sleep(8000);
+		Console::Log(VMPSTRA("GetModuleBase failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
 	}
 
 	while (true)
 	{
-		if (ScanHook(Core::ProcessHandle, VMPSTRA("ntdll.dll"), VMPSTRA("NtCreateSection")))
+		Sleep(1000);
+
+		float currentTime = Utilities::ReadEx<float>(Core::ProcessHandle, Core::LeagueBase + Core::GameTimeOffset);
+		if (currentTime > 1.0f)
 		{
 			break;
 		}
-
-		Sleep(1000);
 	}
 }
 
@@ -429,11 +434,9 @@ void Core::InjectThread()
 			Core::GetGameProcess();
 		}
 
-		//Core::AwaitGameLoad();
+		Core::AwaitGameLoad();
 
 		Win32Hook::Initialize(Core::ProcessHandle);
-
-		Core::DllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Release\\LeagueCheat.Core.dll";
 
 		if (!IsDllInjected())
 		{

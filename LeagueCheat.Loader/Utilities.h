@@ -21,4 +21,13 @@ class Utilities abstract final
 	static DWORD GetExportedFunction(std::string moduleName, std::string functionName);
 
 	static void WriteProtected(HANDLE hProcess, void* lpAddress, void* buffer, SIZE_T dwSize);
+
+	template <typename T>
+	static T ReadEx(HANDLE hProcess, DWORD addr)
+	{
+		T buffer;
+		ReadProcessMemory(hProcess, (LPCVOID)addr, &buffer, sizeof(buffer), nullptr);
+
+		return buffer;
+	}
 };

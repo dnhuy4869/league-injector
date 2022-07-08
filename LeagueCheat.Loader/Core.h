@@ -27,8 +27,8 @@ class Core abstract final
 	public:
 
 	//inline static const wchar_t* TargetName = VMPSTRW(L"hackme-x86.exe");
-	inline static const wchar_t* TargetName = VMPSTRW(L"example_win32_directx9.exe");
-	//inline static const wchar_t* TargetName = VMPSTRW(L"League of Legends.exe");
+	//inline static const wchar_t* TargetName = VMPSTRW(L"example_win32_directx9.exe");
+	inline static const wchar_t* TargetName = VMPSTRW(L"League of Legends.exe");
 
 	inline static const wchar_t* ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
 
@@ -36,9 +36,13 @@ class Core abstract final
 
 	inline static std::string DllPath;
 
+	inline static DWORD GameTimeOffset = 0x0;
+
 	inline static DWORD ProcessId = 0;
 
 	inline static HANDLE ProcessHandle = 0;
+
+	inline static DWORD LeagueBase = 0;
 
 	inline static TCPSocket* IOClient;
 
@@ -48,9 +52,9 @@ class Core abstract final
 
 	static void GetDllPath();
 
-	static void GetGameProcess();
+	static bool GetGameTimeOffset();
 
-	static bool ScanHook(HANDLE hProcess, std::string moduleName, std::string funcName);
+	static void GetGameProcess();
 
 	static void AwaitGameLoad();
 
