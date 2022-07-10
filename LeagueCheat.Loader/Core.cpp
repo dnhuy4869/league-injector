@@ -1,8 +1,35 @@
 #include "./Core.h"
 
+extern const DWORD LOADER_VERSION;
+
+DWORD WINAPI UnloadCore(HMODULE hModule)
+{
+	FreeLibraryAndExitThread(hModule, 0);
+	return 0;
+}
+
 bool Core::Initialize()
 {
 	Console::Setup(VMPSTRA("Loader"));
+
+	CHAR szBuffer[MAX_PATH];
+	GetFullPathNameA(VMPSTRA("Loader_old_3304.exe"), sizeof(szBuffer), szBuffer, nullptr);
+	std::string oldLoaderPath = szBuffer;
+	if (PathFileExistsA(oldLoaderPath.c_str()))
+	{
+		_unlink(oldLoaderPath.c_str());
+	}
+
+	CHAR szExeFileName[MAX_PATH];
+	GetModuleFileNameA(NULL, szExeFileName, sizeof(szExeFileName));
+	std::string fileName = Utilities::GetFileName(szExeFileName);
+
+	if (Utilities::IsProcessRunning(Utilities::StringToWString(fileName).c_str()))
+	{
+		Console::Log(VMPSTRA("Process is already running"), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
 
 	WSADATA WSAData;
 	int error = WSAStartup(MAKEWORD(2, 2), &WSAData);
@@ -15,7 +42,16 @@ bool Core::Initialize()
 
 	GetDllPath();
 
-	Core::DllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Release\\LeagueCheat.Core.dll";
+	if (!GetServerVersion())
+	{
+		Console::Log(VMPSTRA("Check version failed with code ") + Utilities::IntToHex(WSAGetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	CheckLoaderVersion();
+
+	CheckDllVersion();
 
 	if (!GetGameTimeOffset())
 	{
@@ -24,28 +60,172 @@ bool Core::Initialize()
 		ExitProcess(0);
 	}
 
+	system(VMPSTRA("cls"));
+
 	return true;
 }
 
 void Core::GetDllPath()
 {
 	CHAR szProgramFiles[MAX_PATH];
-	SHGetSpecialFolderPathA(0, szProgramFiles, CSIDL_PROGRAM_FILES, FALSE);
+	SHGetSpecialFolderPathA(0, szProgramFiles, CSIDL_COMMON_APPDATA, FALSE);
 	std::string rootPath = szProgramFiles;
 
+	rootPath += VMPSTRA("\\LeagueCheat");
 	CreateDirectoryA(rootPath.c_str(), 0);
 
 	DllPath = rootPath + VMPSTRA("\\LeagueCheat.Core.dll");
+
+	VersionJsonPath = rootPath + VMPSTRA("\\version.json");
 }
 
-DWORD WINAPI UnloadCore(HMODULE hModule)
+bool Core::GetServerVersion()
 {
-	FreeLibraryAndExitThread(hModule, 0);
-	return 0;
+	Console::Log(VMPSTRA("Checking version..."), ConsoleColor::Yellow);
+
+	if (PathFileExistsA(VersionJsonPath.c_str()))
+	{
+		_unlink(VersionJsonPath.c_str());
+	}
+
+	std::string versionLink = VMPSTRA("https://github.com/dnhuy4869/LeagueCheat.Dependencies/raw/master/version.json");
+
+	HRESULT hr = URLDownloadToFileA(NULL, versionLink.c_str(), VersionJsonPath.c_str(), 0, NULL);
+	if (FAILED(hr))
+	{
+		Console::Log(VMPSTRA("URLDownloadToFileA failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	std::ifstream i(VersionJsonPath);
+	nlohmann::json versionJson;
+	i >> versionJson;
+
+	LoaderServerVersion = versionJson[VMPSTRA("loaderVersion")];
+	CoreServerVersion = versionJson[VMPSTRA("coreVersion")];
+
+	return true;
+}
+
+void Core::CheckLoaderVersion()
+{
+	std::string updateLink = VMPSTRA("https://github.com/dnhuy4869/LeagueCheat.Dependencies/raw/master/Loader.exe");
+
+	if (LoaderServerVersion > LOADER_VERSION)
+	{
+		Console::Log(VMPSTRA("Downloading..."), ConsoleColor::Yellow);
+
+		CHAR szExeFileName[MAX_PATH];
+		GetModuleFileNameA(NULL, szExeFileName, sizeof(szExeFileName));
+		std::string loaderPath = szExeFileName;
+
+		CHAR szBuffer[MAX_PATH];
+		GetCurrentDirectoryA(sizeof(szBuffer), szBuffer);
+		std::string currentPath = szBuffer;
+
+		std::string loaderUpdatePath = currentPath + VMPSTRA("\\Unknown3304.exe");
+		std::string loaderOldPath = currentPath + VMPSTRA("\\Loader_old_3304.exe");
+
+		HRESULT hr = URLDownloadToFileA(NULL, updateLink.c_str(), loaderUpdatePath.c_str(), 0, NULL);
+		if (SUCCEEDED(hr))
+		{
+			Console::Log(VMPSTRA("Restarting..."), ConsoleColor::Yellow);
+
+			Sleep(500);
+
+			rename(loaderPath.c_str(), loaderOldPath.c_str());
+			rename(loaderUpdatePath.c_str(), loaderPath.c_str());
+
+			ShellExecuteA(NULL, VMPSTRA("open"), loaderPath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			ExitProcess(0);
+		}
+		else
+		{
+			Console::Log(VMPSTRA("URLDownloadToFileA failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+			Console::Pause();
+			ExitProcess(0);
+		}
+	}
+}
+
+void Core::CheckDllVersion()
+{
+	Console::Log(VMPSTRA("Checking core..."), ConsoleColor::Yellow);
+
+	bool isValidCore = true;
+
+	if (PathFileExistsA(DllPath.c_str()))
+	{
+		HMODULE hModule = LoadLibraryA(DllPath.c_str());
+
+		if ((DWORD)hModule > 0)
+		{
+			typedef DWORD(__stdcall* f_GetCoreVersion)();
+			f_GetCoreVersion pGetCoreVersion = (f_GetCoreVersion)GetProcAddress(hModule, VMPSTRA("GetCoreVersion"));
+
+			if ((DWORD)pGetCoreVersion > 0)
+			{
+				DWORD coreVersion = pGetCoreVersion();
+
+				if (CoreServerVersion > coreVersion)
+				{
+					isValidCore = false;
+				}
+			}
+			else
+			{
+				isValidCore = false;
+			}
+		}
+		else
+		{
+			isValidCore = false;
+		}
+
+		HANDLE hUnload = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)UnloadCore, hModule, 0, 0);
+		if (WaitForSingleObject(hUnload, INFINITE) == WAIT_FAILED)
+		{
+			Console::Log(VMPSTRA("WaitForSingleObject failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+			Console::Pause();
+			ExitProcess(0);
+		}
+	}
+	else
+	{
+		isValidCore = false;
+	}
+
+	std::string updateLink = VMPSTRA("https://github.com/dnhuy4869/LeagueCheat.Dependencies/raw/master/LeagueCheat.Core.dll");
+
+	if (!isValidCore)
+	{
+		if (PathFileExistsA(DllPath.c_str()))
+		{
+			if (_unlink(DllPath.c_str()) != 0)
+			{
+				Console::Log(VMPSTRA("DeleteFile failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+				Console::Pause();
+				ExitProcess(0);
+			}
+		}
+
+		Console::Log(VMPSTRA("Downloading..."), ConsoleColor::Yellow);
+
+		HRESULT hr = URLDownloadToFileA(NULL, updateLink.c_str(), DllPath.c_str(), 0, NULL);
+		if (FAILED(hr))
+		{
+			Console::Log(VMPSTRA("URLDownloadToFileA failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
+			Console::Pause();
+			ExitProcess(0);
+		}
+	}
 }
 
 bool Core::GetGameTimeOffset()
 {
+	Console::Log(VMPSTRA("Getting offsets..."), ConsoleColor::Yellow);
+
 	HMODULE hModule = LoadLibraryA(Core::DllPath.c_str());
 
 	if ((DWORD)hModule <= 0)
@@ -456,11 +636,6 @@ void Core::InjectThread()
 		IOConnect();
 		hMessageThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)PrintMessage, 0, 0, 0);
 
-		while (true)
-		{
-			Sleep(1000);
-		}
-
-		//Core::AwaitGameClose();
+		Core::AwaitGameClose();
 	}
 }

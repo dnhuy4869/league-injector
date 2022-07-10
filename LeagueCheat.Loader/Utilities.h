@@ -7,10 +7,17 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <codecvt>
 
 class Utilities abstract final
 {
 	public:
+
+	static std::string GetFileName(const std::string fullPath);
+
+	static bool IsProcessRunning(const WCHAR* procName);
+
+	static std::wstring StringToWString(const std::string source);
 
 	static DWORD GetTargetProcessId(const WCHAR* procName);
 

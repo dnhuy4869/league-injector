@@ -9,9 +9,14 @@
 #include <iostream>
 #include <filesystem>
 #include <shlobj_core.h>
+#include <istream>
+#include <fstream>
+#include <shellapi.h>
 
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
+
+#pragma comment(lib, "urlmon.lib")
 
 #include "./VMProtect.h"
 #include "./ThirdParty/io_color.h"
@@ -34,6 +39,12 @@ class Core abstract final
 
 	inline static bool m_bSendCommand = false;
 
+	inline static DWORD LoaderServerVersion = 0;
+
+	inline static DWORD CoreServerVersion = 0;
+
+	inline static std::string VersionJsonPath;
+
 	inline static std::string DllPath;
 
 	inline static DWORD GameTimeOffset = 0x0;
@@ -50,7 +61,13 @@ class Core abstract final
 
 	static bool Initialize();
 
+	static bool GetServerVersion();
+
+	static void CheckLoaderVersion();
+
 	static void GetDllPath();
+
+	static void CheckDllVersion();
 
 	static bool GetGameTimeOffset();
 

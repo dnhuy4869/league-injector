@@ -6,6 +6,8 @@
 #include "./Core.h"
 #include "./resource.h"
 
+extern const DWORD LOADER_VERSION = 1004;
+
 int main()
 {
 	VMProtectBeginUltra(__FUNCTION__);
