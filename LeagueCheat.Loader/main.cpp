@@ -6,7 +6,7 @@
 #include "./Core.h"
 #include "./resource.h"
 
-extern const DWORD LOADER_VERSION = 1004;
+extern const DWORD LOADER_VERSION = 1005;
 
 int main()
 {

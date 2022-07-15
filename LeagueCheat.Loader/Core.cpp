@@ -538,7 +538,7 @@ void Core::IOConnect()
 {
 	Console::Log(VMPSTRA("Connecting to io server..."), ConsoleColor::Yellow);
 
-	IOClient = new TCPSocket(VMPSTRA("127.0.0.1"), 27015);
+	IOClient = new TCPSocket(VMPSTRA("127.0.0.1"), 25378);
 
 	while (!IOClient->Connect())
 	{
