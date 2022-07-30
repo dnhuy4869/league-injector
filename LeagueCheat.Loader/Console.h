@@ -9,7 +9,11 @@ enum class ConsoleColor
 {
 	Yellow,
 	Red,
-	Green
+	Green,
+	Blue,
+	Cyan,
+	Magenta,
+	White,
 };
 
 class Console abstract final

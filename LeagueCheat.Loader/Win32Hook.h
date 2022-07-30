@@ -36,6 +36,14 @@ class Win32Hook abstract final
 			VMPSTRA("ntdll.dll"),
 			VMPSTRA("NtCreateSection")
 		},
+		{
+			VMPSTRA("ntdll.dll"),
+			VMPSTRA("NtContinue")
+		},
+		{
+			VMPSTRA("ntdll.dll"),
+			VMPSTRA("NtTestAlert")
+		},
 		/*{
 			VMPSTRA("ntdll.dll"),
 			VMPSTRA("NtCreateThread")

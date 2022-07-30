@@ -42,6 +42,8 @@ bool Core::Initialize()
 
 	GetDllPath();
 
+	//Core::DllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Release\\LeagueCheat.Core.dll";
+
 	if (!GetServerVersion())
 	{
 		Console::Log(VMPSTRA("Check version failed with code ") + Utilities::IntToHex(WSAGetLastError()), ConsoleColor::Red);
@@ -343,7 +345,7 @@ void Core::NormalLoadLibrary()
 {
 	Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
 
-	void* pDllPath = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	void* pDllPath = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	if ((DWORD)pDllPath <= 0)
 	{
 		Console::Log(VMPSTRA("VirtualAllocEx failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
@@ -361,6 +363,8 @@ void Core::NormalLoadLibrary()
 	}
 
 	Win32Hook::RestoreHook(VMPSTRA("NtCreateSection"));
+	Win32Hook::RestoreHook(VMPSTRA("NtContinue"));
+	Win32Hook::RestoreHook(VMPSTRA("NtTestAlert"));
 	//Win32Hook::RestoreHook(VMPSTRA("NtCreateThread"));
 	//Win32Hook::RestoreHook(VMPSTRA("NtCreateThreadEx"));
 	//Win32Hook::RestoreHook(VMPSTRA("LdrInitializeThunk"));
@@ -390,6 +394,8 @@ void Core::NormalLoadLibrary()
 	CloseHandle(hThread);
 	
 	Win32Hook::PlaceHook(VMPSTRA("NtCreateSection"));
+	Win32Hook::PlaceHook(VMPSTRA("NtContinue"));
+	Win32Hook::PlaceHook(VMPSTRA("NtTestAlert"));
 	//Win32Hook::PlaceHook(VMPSTRA("NtCreateThread"));
 	//Win32Hook::PlaceHook(VMPSTRA("NtCreateThreadEx"));
 	//Win32Hook::PlaceHook(VMPSTRA("LdrInitializeThunk"));
@@ -416,7 +422,7 @@ void Core::ShellcodeLoadLibrary()
 	data.pLoadLibraryA = LoadLibraryA;
 	memcpy(data.szDllPath, DllPath.c_str(), strlen(DllPath.c_str()) + 1);
 
-	void* pData = VirtualAllocEx(ProcessHandle, 0, sizeof(LOADLIBRARYA_DATA), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	void* pData = VirtualAllocEx(ProcessHandle, 0, sizeof(LOADLIBRARYA_DATA), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	if ((DWORD)pData <= 0)
 	{
 		Console::Log(VMPSTRA("VirtualAllocEx failed with code ") + Utilities::IntToHex(GetLastError()), ConsoleColor::Red);
@@ -433,7 +439,7 @@ void Core::ShellcodeLoadLibrary()
 		ExitProcess(0);
 	}
 
-	void* pShellcode = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	void* pShellcode = VirtualAllocEx(ProcessHandle, 0, 500, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	if ((DWORD)pShellcode <= 0)
 	{
 		VirtualFreeEx(ProcessHandle, pData, 0, MEM_RELEASE);
@@ -550,7 +556,7 @@ void Core::IOConnect()
 	if (m_bSendCommand)
 	{
 		nlohmann::json command = {
-			//{ VMPSTRA("command"), VMPSTRA("dumpOffsets") }
+			//{ VMPSTRA("command"), VMPSTRA("dumpOffsets") },
 			{ VMPSTRA("command"), VMPSTRA("checkKey") }
 		};
 
@@ -572,12 +578,14 @@ void Core::PrintMessage()
 		if (IOClient->Recv(buffer, sizeof(buffer)))
 		{
 			std::string message = buffer;
-			IOClient->Send(message.c_str(), message.size());
-
+			
 			if (message != "")
 			{
-				Console::Log(buffer, ConsoleColor::Yellow);
+				nlohmann::json cmd_json = nlohmann::json::parse(message);
+				Console::Log(cmd_json[VMPSTRA("message")], cmd_json[VMPSTRA("consoleColor")]);
 			}
+
+			IOClient->Send("...", 4);
 		}
 	}
 }

@@ -6,11 +6,11 @@
 #include "./Core.h"
 #include "./resource.h"
 
-extern const DWORD LOADER_VERSION = 1005;
+extern const DWORD LOADER_VERSION = 1008;
 
 int main()
 {
-	VMProtectBeginUltra(__FUNCTION__);
+	VMProtectBeginMutation(__FUNCTION__);
 
 	if (!Core::Initialize())
 	{
