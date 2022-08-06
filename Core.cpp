@@ -91,6 +91,8 @@ void Core::SelectOption()
 	int option;
 	std::cin >> option;
 	m_CmdOption = (CmdOption)option;
+
+	Console::Clear();
 }
 
 bool Core::InjectDll(DWORD procId, const std::string& dllPath)

@@ -32,7 +32,7 @@ class Core abstract final
 
 	inline static CmdOption m_CmdOption = CmdOption::InjectCore;
 
-	inline static const wchar_t* m_TargetName = VMPSTRW(L"example_win32_directx9.exe");
+	inline static const wchar_t* m_TargetName = VMPSTRW(L"League of Legends.exe");
 
 	inline static const wchar_t* m_ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
 
