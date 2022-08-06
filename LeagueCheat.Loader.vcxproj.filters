@@ -5,6 +5,8 @@
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="Utilities.cpp" />
+    <ClCompile Include="Winsock\TCPSocket.cpp" />
+    <ClCompile Include="Winsock\UDPSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
@@ -16,6 +18,8 @@
     <ClInclude Include="Console.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Utilities.h" />
+    <ClInclude Include="Winsock\TCPSocket.h" />
+    <ClInclude Include="Winsock\UDPSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\VMProtectSDK\VMProtectSDK32.lib" />

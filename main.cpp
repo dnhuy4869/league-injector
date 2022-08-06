@@ -11,6 +11,8 @@ int main()
 	VMProtectBeginMutation(__FUNCTION__);
 
 	Core::Initialize();
+	Core::InjectLoop();
+	Console::Pause();
 
 	VMProtectEnd();
 	return 0;

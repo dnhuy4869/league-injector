@@ -134,6 +134,8 @@
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utilities.cpp" />
+    <ClCompile Include="Winsock\TCPSocket.cpp" />
+    <ClCompile Include="Winsock\UDPSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\VersionInfo.h" />
@@ -145,6 +147,8 @@
     <ClInclude Include="ThirdParty\json.hpp" />
     <ClInclude Include="ThirdParty\VMProtectSDK\VMProtectSDK.h" />
     <ClInclude Include="Utilities.h" />
+    <ClInclude Include="Winsock\TCPSocket.h" />
+    <ClInclude Include="Winsock\UDPSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\VMProtectSDK\VMProtectSDK32.lib" />

@@ -78,3 +78,8 @@ void Console::Pause()
 {
 	system(VMPSTRA("pause >nul"));
 }
+
+void Console::Clear()
+{
+	system(VMPSTRA("cls"));
+}

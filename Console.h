@@ -27,4 +27,6 @@ class Console abstract final
 	static void Log(std::string log, ConsoleColor color);
 
 	static void Pause();
+
+	static void Clear();
 };
