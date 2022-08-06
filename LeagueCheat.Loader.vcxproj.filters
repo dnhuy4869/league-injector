@@ -3,34 +3,30 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="Win32Hook.cpp" />
-    <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="Console.cpp" />
-    <ClCompile Include="TCPSocket.cpp" />
+    <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
+    <ClInclude Include="Common\VersionInfo.h" />
+    <ClInclude Include="Common\VMProtect.h" />
+    <ClInclude Include="ThirdParty\VMProtectSDK\VMProtectSDK.h" />
     <ClInclude Include="ThirdParty\io_color.h" />
     <ClInclude Include="ThirdParty\json.hpp" />
-    <ClInclude Include="ThirdParty\VMProtectSDK\VMProtectSDK.h" />
-    <ClInclude Include="VMProtect.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="Win32Hook.h" />
-    <ClInclude Include="Utilities.h" />
     <ClInclude Include="Console.h" />
-    <ClInclude Include="Definitions.h" />
-    <ClInclude Include="TCPSocket.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\VMProtectSDK\VMProtectSDK32.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="loader.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="loader.aps" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="loader.rc" />
   </ItemGroup>
 </Project>

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "./ThirdParty/io_color.h"
-#include "./VMProtect.h"
+#include "./Common/VMProtect.h"
 
 enum class ConsoleColor
 {

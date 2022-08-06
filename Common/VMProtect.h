@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./ThirdParty/VMProtectSDK/VMProtectSDK.h"
+#include <ThirdParty/VMProtectSDK/VMProtectSDK.h>
 
 #define VMPSTRA VMProtectDecryptStringA
 #define VMPSTRW VMProtectDecryptStringW

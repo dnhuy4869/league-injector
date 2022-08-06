@@ -1,10 +1,5 @@
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define WIN32_LEAN_AND_MEAN
-
-#include <iostream>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <iphlpapi.h>
@@ -13,22 +8,27 @@
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
-#include "./ThirdParty/json.hpp"
+#include <ThirdParty/json.hpp>
 
 class TCPSocket final
 {
 	private:
 
 	std::string m_IpAddress;
+
 	DWORD m_Port;
 
 	SOCKET m_Socket;
+
 	bool m_bConnected = false;
 
 	public:
 
 	TCPSocket(std::string ipAdrr, DWORD port);
+
 	~TCPSocket();
+
+	bool Bind();
 
 	bool Connect();
 
@@ -40,5 +40,5 @@ class TCPSocket final
 
 	bool Recv(char* buffer, int length, int flags = 0);
 
-	bool Emit(std::string e, nlohmann::json payload = {});
+	bool Emit(const std::string& e, const nlohmann::json& payload = {});
 };
