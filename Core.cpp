@@ -129,14 +129,12 @@ bool Core::InjectDll(DWORD procId, const std::string& dllPath)
 		goto INJECT_FAILED;
 	}
 
-	/*GetExitCodeThread(hThread, &retCode);
+	GetExitCodeThread(hThread, &retCode);
 
 	if (retCode > 0)
 	{
 		isSuccess = true;
-	}*/
-
-	isSuccess = true;
+	}
 
 	INJECT_FAILED:
 
