@@ -20,6 +20,7 @@
 
 enum class CmdOption : int
 {
+	Unknown,
 	InjectCore,
 	DumpProcess,
 	DumpOffsets,
@@ -35,9 +36,17 @@ class Core abstract final
 
 	inline static const wchar_t* m_ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
 
+	inline static UDPSocket* m_ConsoleServer;
+
+	inline static HANDLE m_hMessageLoop;
+
 	public:
 
 	static bool Initialize();
+
+	static bool ConsoleServer();
+
+	static void ConsoleLog();
 
 	static void SelectOption();
 

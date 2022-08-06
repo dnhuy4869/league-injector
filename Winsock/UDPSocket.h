@@ -39,4 +39,6 @@ class UDPSocket
 	bool Send(const char* buffer, int length, int flags = 0);
 
 	bool Recv(char* buffer, int length, int flags = 0);
+
+	bool Emit(const std::string& e, const nlohmann::json& payload = {});
 };

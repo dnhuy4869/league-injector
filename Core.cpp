@@ -32,11 +32,53 @@ bool Core::Initialize()
 		ExitProcess(0);
 	}
 
-
+	if (!ConsoleServer())
+	{
+		Console::Log(VMPSTRA("Console setup failed."), ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
 
 	SelectOption();
 
 	return true;
+}
+
+bool Core::ConsoleServer()
+{
+	m_ConsoleServer = new UDPSocket(VMPSTRA("127.0.0.1"), 25378);
+	
+	if (!m_ConsoleServer->Bind())
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void Core::ConsoleLog()
+{
+	char buffer[4096];
+
+	while (true)
+	{
+		Sleep(10);
+
+		ZeroMemory(buffer, sizeof(buffer));
+
+		if (m_ConsoleServer->Recv(buffer, sizeof(buffer)))
+		{
+			std::string message = buffer;
+
+			if (message != "")
+			{
+				nlohmann::json cmd_json = nlohmann::json::parse(message);
+				Console::Log(cmd_json[VMPSTRA("message")], cmd_json[VMPSTRA("consoleColor")]);
+			}
+
+			m_ConsoleServer->Send("cls", 4);
+		}
+	}
 }
 
 void Core::SelectOption()
@@ -49,8 +91,6 @@ void Core::SelectOption()
 	int option;
 	std::cin >> option;
 	m_CmdOption = (CmdOption)option;
-
-	std::cout << (int)m_CmdOption << std::endl;
 }
 
 bool Core::InjectDll(DWORD procId, const std::string& dllPath)
@@ -89,12 +129,14 @@ bool Core::InjectDll(DWORD procId, const std::string& dllPath)
 		goto INJECT_FAILED;
 	}
 
-	GetExitCodeThread(hThread, &retCode);
+	/*GetExitCodeThread(hThread, &retCode);
 
 	if (retCode > 0)
 	{
 		isSuccess = true;
-	}
+	}*/
+
+	isSuccess = true;
 
 	INJECT_FAILED:
 
@@ -132,4 +174,48 @@ void Core::InjectLoop()
 	}
 
 	Console::Log(VMPSTRA("Injected sucessfully."), ConsoleColor::Green);
+
+	char buffer[512];
+	ZeroMemory(buffer, sizeof(buffer));
+	m_ConsoleServer->Recv(buffer, sizeof(buffer));
+
+	switch (m_CmdOption)
+	{
+		case CmdOption::InjectCore:
+		{
+			nlohmann::json command = {
+				{ VMPSTRA("command"), VMPSTRA("loadCore") },
+				{ VMPSTRA("authKey"), VMPSTRA("abcxyz") },
+			};
+
+			const std::string obj_string = command.dump();
+			m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+			break;
+		}
+		case CmdOption::DumpProcess:
+		{
+			nlohmann::json command = {
+				{ VMPSTRA("command"), VMPSTRA("dumpProcess") },
+			};
+
+			const std::string obj_string = command.dump();
+			m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+			break;
+		}
+		case CmdOption::DumpOffsets:
+		{
+			nlohmann::json command = {
+				{ VMPSTRA("command"), VMPSTRA("dumpOffsets") },
+			};
+
+			const std::string obj_string = command.dump();
+			m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+			break;
+		}
+	}
+
+	m_hMessageLoop = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ConsoleLog, 0, 0, 0);
 }

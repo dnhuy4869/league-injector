@@ -86,3 +86,13 @@ bool UDPSocket::Recv(char* buffer, int length, int flags)
 
 	return true;
 }
+
+bool UDPSocket::Emit(const std::string& e, const nlohmann::json& payload)
+{
+	nlohmann::json data = payload;
+	data["event"] = e;
+
+	const std::string& data_string = data.dump();
+
+	return this->Send(data_string.c_str(), data_string.length());
+}
