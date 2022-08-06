@@ -160,7 +160,7 @@ void Core::InjectLoop()
 		ExitProcess(0);
 	}
 
-	std::string dllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Release\\LeagueCheat.Core.dll";
+	std::string dllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Build\\LeagueCheat.Core.dll";
 
 	Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
 
