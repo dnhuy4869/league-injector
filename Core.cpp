@@ -73,7 +73,7 @@ void Core::ConsoleLog()
 			if (message != "")
 			{
 				nlohmann::json cmd_json = nlohmann::json::parse(message);
-				Console::Log(cmd_json[VMPSTRA("message")], cmd_json[VMPSTRA("consoleColor")]);
+				Console::Log(cmd_json["message"], cmd_json["consoleColor"]);
 			}
 
 			m_ConsoleServer->Send("cls", 4);
