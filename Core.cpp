@@ -184,7 +184,7 @@ void Core::InjectLoop()
 		case CmdOption::InjectCore:
 		{
 			nlohmann::json command = {
-				{ VMPSTRA("command"), VMPSTRA("loadCore") },
+				{ VMPSTRA("command"), CmdOption::InjectCore },
 				{ VMPSTRA("authKey"), VMPSTRA("abcxyz") },
 			};
 
@@ -196,7 +196,7 @@ void Core::InjectLoop()
 		case CmdOption::DumpProcess:
 		{
 			nlohmann::json command = {
-				{ VMPSTRA("command"), VMPSTRA("dumpProcess") },
+				{ VMPSTRA("command"), CmdOption::DumpProcess },
 			};
 
 			const std::string obj_string = command.dump();
@@ -207,7 +207,7 @@ void Core::InjectLoop()
 		case CmdOption::DumpOffsets:
 		{
 			nlohmann::json command = {
-				{ VMPSTRA("command"), VMPSTRA("dumpOffsets") },
+				{ VMPSTRA("command"), CmdOption::DumpOffsets },
 			};
 
 			const std::string obj_string = command.dump();
