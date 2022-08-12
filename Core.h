@@ -14,6 +14,7 @@
 #include <shlwapi.h>
 #include <Utilities.h>
 #include <Winsock/UDPSocket.h>
+#include <Common/VersionInfo.h>
 
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "urlmon.lib")
@@ -40,6 +41,22 @@ class Core abstract final
 
 	inline static HANDLE m_hMessageLoop;
 
+	inline static DWORD m_LoaderServerVersion = 0;
+
+	inline static DWORD m_CoreServerVersion = 0;
+
+	inline static std::string m_VersionJsonPath;
+
+	inline static std::string m_DllPath;
+
+	inline static DWORD m_GameTimeOffset = 0x0;
+
+	inline static DWORD m_ProcessId = 0;
+
+	inline static HANDLE m_ProcessHandle = 0;
+
+	inline static bool m_bSendCommand = false;
+
 	public:
 
 	static bool Initialize();
@@ -49,6 +66,24 @@ class Core abstract final
 	static void ConsoleLog();
 
 	static void SelectOption();
+
+	static void GetDllPath();
+
+	static bool GetServerVersion();
+
+	static void CheckLoaderVersion();
+
+	static void CheckDllVersion();
+
+	static bool GetGameTimeOffset();
+
+	static void AwaitProcess();
+
+	static void AwaitGameLoad();
+
+	static bool IsDllInjected();
+
+	static void AwaitGameClose();
 
 	static bool InjectDll(DWORD procId, const std::string& dllPath);
 

@@ -1,8 +1,14 @@
 #include "Core.h"
 
+DWORD WINAPI UnloadCore(HMODULE hModule)
+{
+	FreeLibraryAndExitThread(hModule, 0);
+	return 0;
+}
+
 bool Core::Initialize()
 {
-	Console::Setup(VMPSTRA("Loader"));
+	Console::Setup("Loader");
 
 	CHAR szBuffer[MAX_PATH];
 	GetFullPathNameA(VMPSTRA("Loader_old_3304.exe"), sizeof(szBuffer), szBuffer, nullptr);
@@ -34,13 +40,34 @@ bool Core::Initialize()
 
 	if (!ConsoleServer())
 	{
-		Console::Log(VMPSTRA("Console setup failed."), ConsoleColor::Red);
+		Console::Log("Console setup failed.", ConsoleColor::Red);
 		Console::Pause();
 		ExitProcess(0);
 	}
 
-	SelectOption();
+	//SelectOption();
 
+	GetDllPath();
+
+	if (!GetServerVersion())
+	{
+		Console::Log("Check loader failed.", ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	CheckLoaderVersion();
+
+	CheckDllVersion();
+
+	if (!GetGameTimeOffset())
+	{
+		Console::Log("Get offsets failed.", ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	Console::Clear();
 	return true;
 }
 
@@ -91,6 +118,267 @@ void Core::SelectOption()
 	int option;
 	std::cin >> option;
 	m_CmdOption = (CmdOption)option;
+
+	Console::Clear();
+}
+
+void Core::GetDllPath()
+{
+	CHAR szProgramFiles[MAX_PATH];
+	SHGetSpecialFolderPathA(0, szProgramFiles, CSIDL_COMMON_APPDATA, FALSE);
+	std::string rootPath = szProgramFiles;
+
+	rootPath += "\\LeagueCheat";
+	CreateDirectoryA(rootPath.c_str(), 0);
+
+	m_DllPath = rootPath + "\\LeagueCheat.Core.dll";
+
+	m_VersionJsonPath = rootPath + "\\version.json";
+}
+
+bool Core::GetServerVersion()
+{
+	Console::Log("Checking version...", ConsoleColor::Yellow);
+
+	if (PathFileExistsA(m_VersionJsonPath.c_str()))
+	{
+		_unlink(m_VersionJsonPath.c_str());
+	}
+
+	std::string versionLink = "https://github.com/dnhuy4869/LeagueCheat.Dependencies/raw/master/version.json";
+
+	HRESULT hr = URLDownloadToFileA(NULL, versionLink.c_str(), m_VersionJsonPath.c_str(), 0, NULL);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	std::ifstream i(m_VersionJsonPath);
+	nlohmann::json versionJson;
+	i >> versionJson;
+
+	m_LoaderServerVersion = versionJson["loaderVersion"];
+	m_CoreServerVersion = versionJson["coreVersion"];
+
+	return true;
+}
+
+void Core::CheckLoaderVersion()
+{
+	std::string updateLink = "https://github.com/dnhuy4869/LeagueCheat.Dependencies/raw/master/Loader.exe";
+
+	if (m_LoaderServerVersion > LOADER_VERSION)
+	{
+		Console::Log("Downloading...", ConsoleColor::Yellow);
+
+		CHAR szExeFileName[MAX_PATH];
+		GetModuleFileNameA(NULL, szExeFileName, sizeof(szExeFileName));
+		std::string loaderPath = szExeFileName;
+
+		CHAR szBuffer[MAX_PATH];
+		GetCurrentDirectoryA(sizeof(szBuffer), szBuffer);
+		std::string currentPath = szBuffer;
+
+		std::string loaderUpdatePath = currentPath + VMPSTRA("\\Unknown3304.exe");
+		std::string loaderOldPath = currentPath + VMPSTRA("\\Loader_old_3304.exe");
+
+		HRESULT hr = URLDownloadToFileA(NULL, updateLink.c_str(), loaderUpdatePath.c_str(), 0, NULL);
+		if (SUCCEEDED(hr))
+		{
+			Console::Log("Restarting...", ConsoleColor::Yellow);
+
+			Sleep(500);
+
+			rename(loaderPath.c_str(), loaderOldPath.c_str());
+			rename(loaderUpdatePath.c_str(), loaderPath.c_str());
+
+			ShellExecuteA(NULL, "open", loaderPath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			ExitProcess(0);
+		}
+		else
+		{
+			Console::Log("Download loader failed", ConsoleColor::Red);
+			Console::Pause();
+			ExitProcess(0);
+		}
+	}
+}
+
+void Core::CheckDllVersion()
+{
+	Console::Log("Checking core...", ConsoleColor::Yellow);
+
+	bool isValidCore = true;
+
+	if (PathFileExistsA(m_DllPath.c_str()))
+	{
+		HMODULE hModule = LoadLibraryA(m_DllPath.c_str());
+
+		if ((DWORD)hModule > 0)
+		{
+			typedef DWORD(__stdcall* f_GetCoreVersion)();
+			f_GetCoreVersion pGetCoreVersion = (f_GetCoreVersion)GetProcAddress(hModule, "GetCoreVersion");
+
+			if ((DWORD)pGetCoreVersion > 0)
+			{
+				DWORD coreVersion = pGetCoreVersion();
+
+				if (m_CoreServerVersion > coreVersion)
+				{
+					isValidCore = false;
+				}
+			}
+			else
+			{
+				isValidCore = false;
+			}
+		}
+		else
+		{
+			isValidCore = false;
+		}
+
+		HANDLE hUnload = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)UnloadCore, hModule, 0, 0);
+		if (WaitForSingleObject(hUnload, INFINITE) == WAIT_FAILED)
+		{
+			Console::Log("Check core failed", ConsoleColor::Red);
+			Console::Pause();
+			ExitProcess(0);
+		}
+	}
+	else
+	{
+		isValidCore = false;
+	}
+
+	std::string updateLink = "https://github.com/dnhuy4869/LeagueCheat.Dependencies/raw/master/LeagueCheat.Core.dll";
+
+	if (!isValidCore)
+	{
+		if (PathFileExistsA(m_DllPath.c_str()))
+		{
+			if (_unlink(m_DllPath.c_str()) != 0)
+			{
+				Console::Log("Could not delete old core.", ConsoleColor::Red);
+				Console::Pause();
+				ExitProcess(0);
+			}
+		}
+
+		Console::Log("Downloading...", ConsoleColor::Yellow);
+
+		HRESULT hr = URLDownloadToFileA(NULL, updateLink.c_str(), m_DllPath.c_str(), 0, NULL);
+		if (FAILED(hr))
+		{
+			Console::Log("Download core failed", ConsoleColor::Red);
+			Console::Pause();
+			ExitProcess(0);
+		}
+	}
+}
+
+bool Core::GetGameTimeOffset()
+{
+	Console::Log("Getting offsets...", ConsoleColor::Yellow);
+
+	HMODULE hModule = LoadLibraryA(m_DllPath.c_str());
+
+	if ((DWORD)hModule <= 0)
+	{
+		return false;
+	}
+
+	typedef DWORD(__stdcall* f_GetGameTimeOffset)();
+
+	f_GetGameTimeOffset f_Function = (f_GetGameTimeOffset)GetProcAddress(hModule, VMPSTRA("GetGameTimeOffset"));
+	if ((DWORD)f_Function <= 0)
+	{
+		return false;
+	}
+
+	m_GameTimeOffset = f_Function();
+
+	HANDLE hUnload = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)UnloadCore, hModule, 0, 0);
+	if (WaitForSingleObject(hUnload, INFINITE) == WAIT_FAILED)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void Core::AwaitProcess()
+{
+	Console::Log(VMPSTRA("Waiting for game process..."), ConsoleColor::Yellow);
+
+	while (true)
+	{
+		Sleep(1000);
+
+		m_ProcessId = Utilities::GetTargetProcessId(m_TargetName);
+
+		if (m_ProcessId > 0)
+		{
+			break;
+		}
+	}
+}
+
+void Core::AwaitGameLoad()
+{
+	Console::Log(VMPSTRA("Waiting for game completely loaded..."), ConsoleColor::Yellow);
+
+	DWORD leagueBase = 0;
+
+	do
+	{
+		leagueBase = Utilities::GetModuleBase(m_ProcessId, m_TargetName);
+	} while (leagueBase <= 0);
+
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_ProcessId);
+	if ((DWORD)hProcess <= 0)
+	{
+		Console::Log("Could not find game process.", ConsoleColor::Red);
+		Console::Pause();
+		ExitProcess(0);
+	}
+
+	while (true)
+	{
+		Sleep(1000);
+
+		float currentTime = Utilities::ReadEx<float>(hProcess, leagueBase + m_GameTimeOffset);
+		if (currentTime > 1.0f)
+		{
+			break;
+		}
+	}
+
+	CloseHandle(hProcess);
+}
+
+bool Core::IsDllInjected()
+{
+	DWORD moduleBase = Utilities::GetModuleBase(m_ProcessId, L"");
+	if (moduleBase > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void Core::AwaitGameClose()
+{
+	while (true)
+	{
+		Sleep(1000);
+
+		if (Utilities::GetTargetProcessId(m_TargetName) <= 0)
+		{
+			break;
+		}
+	}
 
 	Console::Clear();
 }
@@ -154,68 +442,88 @@ bool Core::InjectDll(DWORD procId, const std::string& dllPath)
 
 void Core::InjectLoop()
 {
-	DWORD procId = Utilities::GetTargetProcessId(m_TargetName);
-	if (procId <= 0)
+	while (true)
 	{
-		Console::Log(VMPSTRA("Cound not find process id."), ConsoleColor::Red);
-		Console::Pause();
-		ExitProcess(0);
-	}
+		Sleep(10);
 
-	std::string dllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Build\\LeagueCheat.Core.dll";
-
-	Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
-
-	if (!InjectDll(procId, dllPath))
-	{
-		Console::Log(VMPSTRA("Inject attempt failed."), ConsoleColor::Red);
-		Console::Pause();
-		ExitProcess(0);
-	}
-
-	Console::Log(VMPSTRA("Injected sucessfully."), ConsoleColor::Green);
-
-	char buffer[512];
-	ZeroMemory(buffer, sizeof(buffer));
-	m_ConsoleServer->Recv(buffer, sizeof(buffer));
-
-	switch (m_CmdOption)
-	{
-		case CmdOption::InjectCore:
+		if (m_ProcessId <= 0)
 		{
-			nlohmann::json command = {
-				{ VMPSTRA("command"), CmdOption::InjectCore },
-				{ VMPSTRA("authKey"), VMPSTRA("abcxyz") },
-			};
-
-			const std::string obj_string = command.dump();
-			m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
-
-			break;
+			Core::AwaitProcess();
 		}
-		case CmdOption::DumpProcess:
+
+		Core::AwaitGameLoad();
+
+		Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
+
+		if (!IsDllInjected())
 		{
-			nlohmann::json command = {
-				{ VMPSTRA("command"), CmdOption::DumpProcess },
-			};
+			if (!InjectDll(m_ProcessId, m_DllPath))
+			{
+				Console::Log(VMPSTRA("Inject attempt failed."), ConsoleColor::Red);
+				Console::Pause();
+				ExitProcess(0);
+			}
+			else
+			{
+				Console::Log(VMPSTRA("Injected sucessfully."), ConsoleColor::Green);
+			}
 
-			const std::string obj_string = command.dump();
-			m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
-
-			break;
+			m_bSendCommand = true;
 		}
-		case CmdOption::DumpOffsets:
+
+		if (m_bSendCommand)
 		{
-			nlohmann::json command = {
-				{ VMPSTRA("command"), CmdOption::DumpOffsets },
-			};
+			char buffer[512];
+			ZeroMemory(buffer, sizeof(buffer));
+			m_ConsoleServer->Recv(buffer, sizeof(buffer));
 
-			const std::string obj_string = command.dump();
-			m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+			switch (m_CmdOption)
+			{
+				case CmdOption::InjectCore:
+				{
+					nlohmann::json command = {
+						{ VMPSTRA("command"), CmdOption::InjectCore },
+						{ VMPSTRA("authKey"), VMPSTRA("abcxyz") },
+					};
 
-			break;
+					const std::string obj_string = command.dump();
+					m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+					break;
+				}
+				case CmdOption::DumpProcess:
+				{
+					nlohmann::json command = {
+						{ VMPSTRA("command"), CmdOption::DumpProcess },
+					};
+
+					const std::string obj_string = command.dump();
+					m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+					break;
+				}
+				case CmdOption::DumpOffsets:
+				{
+					nlohmann::json command = {
+						{ VMPSTRA("command"), CmdOption::DumpOffsets },
+					};
+
+					const std::string obj_string = command.dump();
+					m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+					break;
+				}
+			}
 		}
+
+		m_ProcessId = 0;
+		m_ProcessHandle = 0;
+
+		if ((DWORD)m_hMessageLoop <= 0)
+		{
+			m_hMessageLoop = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ConsoleLog, 0, 0, 0);
+		}
+
+		Core::AwaitGameClose();
 	}
-
-	m_hMessageLoop = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ConsoleLog, 0, 0, 0);
 }
