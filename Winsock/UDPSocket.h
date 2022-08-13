@@ -34,6 +34,8 @@ class UDPSocket
 
 	bool Connect();
 
+	void SetTimeout(int miliseconds);
+
 	bool Close();
 
 	bool Send(const char* buffer, int length, int flags = 0);

@@ -15,6 +15,7 @@
 #include <Utilities.h>
 #include <Winsock/UDPSocket.h>
 #include <Common/VersionInfo.h>
+#include <Winsock/TCPSocket.h>
 
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "urlmon.lib")
@@ -27,6 +28,8 @@ enum class CmdOption : int
 	DumpOffsets,
 };
 
+void TimeoutSocket();
+
 class Core abstract final
 {
 	private:
@@ -38,6 +41,8 @@ class Core abstract final
 	inline static const wchar_t* m_ModuleName = VMPSTRW(L"LeagueCheat.Core.dll");
 
 	inline static UDPSocket* m_ConsoleServer;
+
+	inline static TCPSocket* m_DllClient;
 
 	inline static HANDLE m_hMessageLoop;
 
@@ -58,6 +63,8 @@ class Core abstract final
 	inline static bool m_bSendCommand = false;
 
 	public:
+
+	friend void TimeoutSocket();
 
 	static bool Initialize();
 

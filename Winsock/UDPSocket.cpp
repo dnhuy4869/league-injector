@@ -51,6 +51,14 @@ bool UDPSocket::Connect()
 	return true;
 }
 
+void UDPSocket::SetTimeout(int miliseconds)
+{
+	int timeout = miliseconds;
+	int timeoutSize = sizeof(timeout);
+	setsockopt(m_Socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, timeoutSize);
+	setsockopt(m_Socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, timeoutSize);
+}
+
 bool UDPSocket::Close()
 {
 	if (m_bConnected)

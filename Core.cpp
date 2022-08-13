@@ -357,15 +357,38 @@ void Core::AwaitGameLoad()
 	CloseHandle(hProcess);
 }
 
+bool m_bSendSuccess = false;
+
+void TimeoutSocket()
+{
+	if (Core::m_DllClient->Send("cls", 4))
+	{
+		m_bSendSuccess = true;
+	}
+}
+
 bool Core::IsDllInjected()
 {
-	DWORD moduleBase = Utilities::GetModuleBase(m_ProcessId, L"");
-	if (moduleBase > 0)
+	m_DllClient = new TCPSocket(VMPSTRA("127.0.0.1"), 25379);
+
+	if (!m_DllClient->Connect())
 	{
-		return true;
+		return false;
 	}
 
-	return false;
+	HANDLE hTimeout = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)TimeoutSocket, 0, 0, 0);
+	WaitForSingleObject(hTimeout, 1000);
+	TerminateThread(hTimeout, 0);
+
+	m_DllClient->Close();
+	delete m_DllClient;
+
+	if (!m_bSendSuccess)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void Core::AwaitGameClose()
@@ -453,10 +476,10 @@ void Core::InjectLoop()
 
 		Core::AwaitGameLoad();
 
-		Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
-
 		if (!IsDllInjected())
 		{
+			Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
+
 			if (!InjectDll(m_ProcessId, m_DllPath))
 			{
 				Console::Log(VMPSTRA("Inject attempt failed."), ConsoleColor::Red);
@@ -514,6 +537,10 @@ void Core::InjectLoop()
 					break;
 				}
 			}
+		}
+		else
+		{
+			Console::Log(VMPSTRA("Injected skipped, hack loaded sucessfully."), ConsoleColor::Green);
 		}
 
 		m_ProcessId = 0;
