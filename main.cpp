@@ -12,6 +12,12 @@ int main()
 
 	Core::Initialize();
 	Core::InjectLoop();
+
+	while (true)
+	{
+		Sleep(1000);
+	}
+
 	Console::Pause();
 
 	VMProtectEnd();
