@@ -23,6 +23,12 @@ class Utilities abstract final
 
 	static DWORD GetModuleBase(DWORD procId, const wchar_t* modName);
 
+	static DWORD GetHijackThreadId(DWORD procId);
+
+	static bool SuspendThread(DWORD procId, DWORD threadId);
+
+	static bool ResumeThread(DWORD procId, DWORD threadId);
+
 	static std::string IntToHex(int number, int fillWidth = 8, std::string prefix = "0x");
 
 	static DWORD GetExportedFunction(std::string moduleName, std::string functionName);

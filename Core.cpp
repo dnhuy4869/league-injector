@@ -45,7 +45,16 @@ bool Core::Initialize()
 		ExitProcess(0);
 	}
 
-	//SelectOption();
+	if (!RELEASE_BUILD)
+	{
+		SelectOption();
+	}
+
+	if (!RELEASE_BUILD)
+	{
+		m_DllPath = "C:\\Users\\Admin\\Desktop\\Projects\\LeagueCheat\\LeagueCheat.Core\\Build\\LeagueCheat.Core.dll";
+		goto SKIP_VERSION_CHECK;
+	}
 
 	GetDllPath();
 
@@ -59,6 +68,8 @@ bool Core::Initialize()
 	CheckLoaderVersion();
 
 	CheckDllVersion();
+
+	SKIP_VERSION_CHECK:
 
 	if (!GetGameTimeOffset())
 	{
@@ -114,7 +125,7 @@ void Core::SelectOption()
 	std::cout << VMPSTRA("[1] Inject dll.") << std::endl;
 	std::cout << VMPSTRA("[2] Dump process.") << std::endl;
 	std::cout << VMPSTRA("[3] Dump offsets.") << std::endl;
-	std::cout << io_color::yellow << "Select option: ";
+	std::cout << io_color::yellow << VMPSTRA("Select option: ");
 	int option;
 	std::cin >> option;
 	m_CmdOption = (CmdOption)option;
@@ -406,13 +417,13 @@ void Core::AwaitGameClose()
 	Console::Clear();
 }
 
-bool Core::InjectDll(DWORD procId, const std::string& dllPath)
+bool Core::InjectDll_CreateThread(DWORD procId, const std::string& dllPath)
 {
 	HANDLE hProcess = 0;
 	void* pDllPath = 0;
 	HANDLE hThread = 0;
 	DWORD retCode = 0;
-	bool isSuccess = 0;
+	bool isSuccess = false;
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
 	if ((DWORD)hProcess <= 0)
@@ -463,6 +474,114 @@ bool Core::InjectDll(DWORD procId, const std::string& dllPath)
 	return false;
 }
 
+__declspec(naked) void stub()
+{
+	__asm
+	{
+		pushad
+		pushfd
+
+		call start
+
+		start:
+		pop ecx
+		sub ecx, 7
+		lea eax, [ecx + 32] // 32 = Code length + 11 int3 + 1
+		push eax
+		call dword ptr[ecx - 4] // LoadLibraryA address is stored before the shellcode
+
+		popfd
+		popad
+
+		ret
+	}
+}
+
+DWORD WINAPI stub_end()
+{
+	return 0;
+}
+
+bool Core::InjectDll_HijackThread(DWORD procId, const std::string& dllPath)
+{
+	HANDLE hProcess = 0;
+	void* pShellCode = 0;
+	HANDLE hThread = 0;
+	HANDLE hSnapshot = 0;
+	DWORD retCode = 0;
+	bool isSuccess = false;
+
+	DWORD threadId = 0;
+	CONTEXT ctx;
+	ctx.ContextFlags = CONTEXT_FULL;
+
+	DWORD stublen = (DWORD)stub_end - (DWORD)stub;
+
+	DWORD LoadLibraryA_Addr = (DWORD)LoadLibraryA;
+	DWORD dllPathLen = strlen(dllPath.c_str()) + 1;
+
+	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
+	if ((DWORD)hProcess <= 0)
+	{
+		goto INJECT_FAILED;
+	}
+
+	threadId = Utilities::GetHijackThreadId(procId);
+	if (threadId <= 0)
+	{
+		goto INJECT_FAILED;
+	}
+
+	hThread = OpenThread(THREAD_ALL_ACCESS, false, threadId);
+	if ((DWORD)hThread <= 0)
+	{
+		goto INJECT_FAILED;
+	}
+
+	//SuspendThread(hThread);
+	Utilities::SuspendThread(procId, 0);
+
+	if (!GetThreadContext(hThread, &ctx))
+	{
+		goto INJECT_FAILED;
+	}
+
+	pShellCode = VirtualAllocEx(hProcess, 0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if ((DWORD)pShellCode <= 0)
+	{
+		goto INJECT_FAILED;
+	}
+
+	WriteProcessMemory(hProcess, pShellCode, &LoadLibraryA_Addr, sizeof(DWORD), NULL);
+	WriteProcessMemory(hProcess, (PVOID)((LPBYTE)pShellCode + 4), stub, stublen, NULL); 
+	WriteProcessMemory(hProcess, (PVOID)((LPBYTE)pShellCode + 4 + stublen), dllPath.c_str(), dllPathLen, NULL); 
+
+	ctx.Esp -= 4;
+	WriteProcessMemory(hProcess, (PVOID)ctx.Esp, &ctx.Eip, sizeof(PVOID), NULL);
+	ctx.Eip = (DWORD)((LPBYTE)pShellCode + 4);
+
+	if (!SetThreadContext(hThread, &ctx)) 
+	{
+		goto INJECT_FAILED;
+	}
+
+	//ResumeThread(hThread);
+	Utilities::ResumeThread(procId, 0);
+
+	INJECT_FAILED:
+
+	if (hThread) CloseHandle(hThread);
+	if (pShellCode) VirtualFreeEx(hProcess, pShellCode, 0, MEM_RELEASE);
+	if (hProcess) CloseHandle(hProcess);
+
+	if (isSuccess)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 void Core::InjectLoop()
 {
 	while (true)
@@ -474,13 +593,15 @@ void Core::InjectLoop()
 			Core::AwaitProcess();
 		}
 
+		//InjectDll_HijackThread(m_ProcessId, m_DllPath);
+
 		Core::AwaitGameLoad();
 
 		if (!IsDllInjected())
 		{
 			Console::Log(VMPSTRA("Injecting..."), ConsoleColor::Yellow);
 
-			if (!InjectDll(m_ProcessId, m_DllPath))
+			if (!InjectDll_CreateThread(m_ProcessId, m_DllPath))
 			{
 				Console::Log(VMPSTRA("Inject attempt failed."), ConsoleColor::Red);
 				Console::Pause();
@@ -551,6 +672,11 @@ void Core::InjectLoop()
 			m_hMessageLoop = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ConsoleLog, 0, 0, 0);
 		}
 
+		if (!RELEASE_BUILD)
+		{
+			break;
+		}
+		
 		Core::AwaitGameClose();
 	}
 }

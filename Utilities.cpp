@@ -111,6 +111,98 @@ DWORD Utilities::GetModuleBase(DWORD procId, const wchar_t* modName)
 	return moduleAddr;
 }
 
+DWORD Utilities::GetHijackThreadId(DWORD procId)
+{
+	DWORD threadId = 0;
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, procId);
+	if ((DWORD)hSnap <= 0)
+	{
+		return false;
+	}
+
+	THREADENTRY32 threadEntry32;
+	threadEntry32.dwSize = sizeof(THREADENTRY32);
+
+	if (Thread32First(hSnap, &threadEntry32))
+	{
+		do
+		{
+			if (threadEntry32.th32OwnerProcessID == procId)
+			{
+				threadId = threadEntry32.th32ThreadID;
+				break;
+			}
+
+		} while (Thread32Next(hSnap, &threadEntry32));
+	}
+
+	return threadId;
+}
+
+bool Utilities::SuspendThread(DWORD procId, DWORD threadId)
+{
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, procId);
+	if (hSnap == 0x0 || hSnap == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	THREADENTRY32 te;
+	te.dwSize = sizeof(te);
+
+	if (Thread32First(hSnap, &te))
+	{
+		do
+		{
+			if (te.th32ThreadID != threadId && te.th32OwnerProcessID == procId)
+			{
+				HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
+				if (thread != NULL)
+				{
+					::SuspendThread(thread);
+					CloseHandle(thread);
+				}
+			}
+		} while (Thread32Next(hSnap, &te));
+	}
+
+	CloseHandle(hSnap);
+
+	return true;
+}
+
+bool Utilities::ResumeThread(DWORD procId, DWORD threadId)
+{
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, procId);
+	if (hSnap == 0x0 || hSnap == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	THREADENTRY32 te;
+	te.dwSize = sizeof(te);
+
+	if (Thread32First(hSnap, &te))
+	{
+		do
+		{
+			if (te.th32ThreadID != threadId && te.th32OwnerProcessID == procId)
+			{
+				HANDLE thread = ::OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
+				if (thread != NULL)
+				{
+					::ResumeThread(thread);
+					CloseHandle(thread);
+				}
+			}
+		} while (Thread32Next(hSnap, &te));
+	}
+
+	CloseHandle(hSnap);
+
+	return true;
+}
+
 std::string Utilities::IntToHex(int number, int fillWidth, std::string prefix)
 {
 	std::stringstream stream;

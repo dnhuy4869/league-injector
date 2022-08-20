@@ -92,7 +92,9 @@ class Core abstract final
 
 	static void AwaitGameClose();
 
-	static bool InjectDll(DWORD procId, const std::string& dllPath);
+	static bool InjectDll_CreateThread(DWORD procId, const std::string& dllPath);
+
+	static bool InjectDll_HijackThread(DWORD procId, const std::string& dllPath);
 
 	static void InjectLoop();
 };
