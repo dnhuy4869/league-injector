@@ -69,14 +69,14 @@ bool Core::Initialize()
 
 	CheckDllVersion();
 
-	SKIP_VERSION_CHECK:
-
 	if (!GetGameTimeOffset())
 	{
 		Console::Log("Get offsets failed.", ConsoleColor::Red);
 		Console::Pause();
 		ExitProcess(0);
 	}
+
+	SKIP_VERSION_CHECK:
 
 	Console::Clear();
 	return true;
@@ -590,6 +590,12 @@ void Core::InjectLoop()
 	{
 		Sleep(10);
 
+		if (!RELEASE_BUILD)
+		{
+			m_ProcessId = Utilities::GetTargetProcessId(m_TargetName);
+			goto SKIP_AWAIT;
+		}
+
 		if (m_ProcessId <= 0)
 		{
 			Core::AwaitProcess();
@@ -598,6 +604,8 @@ void Core::InjectLoop()
 		//InjectDll_HijackThread(m_ProcessId, m_DllPath);
 
 		Core::AwaitGameLoad();
+
+		SKIP_AWAIT:
 
 		if (!IsDllInjected())
 		{
