@@ -26,6 +26,8 @@ enum class CmdOption : int
 	InjectCore,
 	DumpProcess,
 	DumpOffsets,
+	DumpSkinHash,
+	DumpSpellDatabase,
 };
 
 void TimeoutSocket();

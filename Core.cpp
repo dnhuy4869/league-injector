@@ -125,6 +125,8 @@ void Core::SelectOption()
 	std::cout << VMPSTRA("[1] Inject dll.") << std::endl;
 	std::cout << VMPSTRA("[2] Dump process.") << std::endl;
 	std::cout << VMPSTRA("[3] Dump offsets.") << std::endl;
+	std::cout << VMPSTRA("[4] Dump skin hash.") << std::endl;
+	std::cout << VMPSTRA("[5] Dump spell database.") << std::endl;
 	std::cout << io_color::yellow << VMPSTRA("Select option: ");
 	int option;
 	std::cin >> option;
@@ -650,6 +652,28 @@ void Core::InjectLoop()
 				{
 					nlohmann::json command = {
 						{ VMPSTRA("command"), CmdOption::DumpOffsets },
+					};
+
+					const std::string obj_string = command.dump();
+					m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+					break;
+				}
+				case CmdOption::DumpSkinHash:
+				{
+					nlohmann::json command = {
+						{ VMPSTRA("command"), CmdOption::DumpSkinHash },
+					};
+
+					const std::string obj_string = command.dump();
+					m_ConsoleServer->Send(obj_string.c_str(), obj_string.size());
+
+					break;
+				}
+				case CmdOption::DumpSpellDatabase:
+				{
+					nlohmann::json command = {
+						{ VMPSTRA("command"), CmdOption::DumpSpellDatabase },
 					};
 
 					const std::string obj_string = command.dump();
